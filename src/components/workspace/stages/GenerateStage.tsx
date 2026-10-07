@@ -309,8 +309,9 @@ function ClusterCard({
       data-drop={c.id}
       onFocusCapture={onFocus}
       onMouseEnter={onFocus}
-      className={clsx("card relative transition-[box-shadow] duration-150", dropClass(over))}
-      style={{ borderLeft: `5px solid ${color}`, zIndex: lifting ? 50 : undefined }}
+      // 둥근 모서리 밖으로 자료 행이 각지게 나오지 않도록 잘라 내되, 자료를 다른 묶음으로 끄는 동안에는 잘리지 않게 푼다
+      className={clsx("card relative transition-[box-shadow] duration-150", !lifting && "overflow-clip", dropClass(over))}
+      style={{ zIndex: lifting ? 50 : undefined }}
     >
       <div className="flex flex-wrap items-start gap-3 p-4 pb-3">
         {canEdit ? (
@@ -324,7 +325,7 @@ function ClusterCard({
             <GripVertical size={16} />
           </button>
         ) : null}
-        <span className="mt-1.5 text-sm font-bold tabular-nums" style={{ color }} title="우선순위">
+        <span className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold tabular-nums text-white" style={{ background: color }} title="우선순위">
           {index + 1}
         </span>
         <div className="min-w-0 flex-1 space-y-2">
@@ -512,7 +513,7 @@ function MaterialRow({
               onChange={(e) => onDecision({ reason: e.target.value })}
               placeholder={`근거: ${def?.prompt}`}
               maxLength={500}
-              className={clsx("h-8 text-sm", !reason && "border-warn/60")}
+              className="h-8 text-sm"
             />
           ) : (
             <p className="text-sm text-ink-2">근거: {reason || "아직 없음"}</p>

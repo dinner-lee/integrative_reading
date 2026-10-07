@@ -140,13 +140,14 @@
   color-scheme: dark;
 }
 
-/* Liveblocks 기본 UI를 앱 토큰에 연결 */
-:root {
+/* Liveblocks 기본 UI를 앱 토큰에 연결. 기본 CSS가 .lb-root에 같은 변수를 다시 두므로 .lb-root에도 걸어야 먹는다 */
+:root,
+.lb-root {
   --lb-accent: var(--accent);
   --lb-accent-foreground: var(--on-accent);
   --lb-background: var(--surface);
   --lb-foreground: var(--ink);
-  --lb-radius: 0.5rem;
+  --lb-radius: 1rem;
   --lb-spacing: 0.9em;
 }
 

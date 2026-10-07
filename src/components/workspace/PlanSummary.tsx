@@ -9,7 +9,7 @@ export function PlanSummary({ compact, className }: { compact?: boolean; classNa
   const plan = useStorage((root) => root.plan);
   const empty = !plan?.topic && !plan?.purpose && !plan?.audience;
   return (
-    <div className={clsx("rounded-xl border border-accent/20 bg-accent-soft/40 px-4 py-3 text-sm", className)}>
+    <div className={clsx("rounded-2xl border border-line px-4 py-3 text-sm", className)}>
       <div className="flex items-start gap-2">
         <Target size={16} className="mt-0.5 shrink-0 text-accent" />
         {empty ? (
