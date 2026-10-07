@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { Providers } from "@/components/Providers";
 import { themeInitScript } from "@/components/ThemeToggle";
 import "./globals.css";
 
@@ -34,7 +35,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {themeInitScript}
         </Script>
       </head>
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        <Providers>
+          <div>{children}</div>
+        </Providers>
+      </body>
     </html>
   );
 }

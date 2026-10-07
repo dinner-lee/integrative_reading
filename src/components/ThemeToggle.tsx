@@ -24,6 +24,8 @@ export function ThemeToggle({ className }: { className?: string }) {
   function apply(next: Theme) {
     setTheme(next);
     const root = document.documentElement;
+    root.classList.add("theme-transition");
+    window.setTimeout(() => root.classList.remove("theme-transition"), 350);
     if (next === "system") root.removeAttribute("data-theme");
     else root.setAttribute("data-theme", next);
     try {

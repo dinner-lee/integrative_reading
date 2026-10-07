@@ -1,6 +1,8 @@
 "use client";
 
 import { Lightbulb } from "lucide-react";
+import { LayoutGroup, motion } from "motion/react";
+import { springs } from "../../motion";
 import { useMemo, useState } from "react";
 import { track } from "@/lib/client/logger";
 import { Badge, Notice, clsx, clusterColor } from "../../ui";
@@ -49,25 +51,25 @@ export function ResultView({
 
   return (
     <div>
-      <div className="mb-4 flex gap-1 overflow-x-auto border-b border-line" role="tablist">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            role="tab"
-            aria-selected={tab === t.key}
-            onClick={() => {
-              setTab(t.key);
-              track("analysis.tab", { tab: t.key, runId }, { stage: "analyze" });
-            }}
-            className={clsx(
-              "-mb-px shrink-0 border-b-2 px-3 py-2 text-sm font-medium transition-colors",
-              tab === t.key ? "border-accent text-accent" : "border-transparent text-ink-2 hover:text-ink",
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <LayoutGroup id={`result-tabs-${runId}`}>
+        <div className="mb-4 flex gap-1 overflow-x-auto border-b border-line" role="tablist">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              role="tab"
+              aria-selected={tab === t.key}
+              onClick={() => {
+                setTab(t.key);
+                track("analysis.tab", { tab: t.key, runId }, { stage: "analyze" });
+              }}
+              className={clsx("pressable relative -mb-px shrink-0 px-3 py-2 text-sm font-medium", tab === t.key ? "text-accent" : "text-ink-2 hover:text-ink")}
+            >
+              {t.label}
+              {tab === t.key ? <motion.span layoutId="result-underline" className="absolute inset-x-0 bottom-0 h-0.5 bg-accent" transition={springs.quick} aria-hidden /> : null}
+            </button>
+          ))}
+        </div>
+      </LayoutGroup>
       {result.warnings.length ? (
         <div className="mb-4 space-y-2">
           {result.warnings.map((w, i) => (

@@ -2,13 +2,17 @@
 
 import { LiveList, LiveObject } from "@liveblocks/client";
 import { useMutation, useStorage, useUpdateMyPresence } from "@liveblocks/react/suspense";
-import { ArrowDown, ArrowUp, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, GripVertical, Plus, Trash2, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { nanoid } from "nanoid";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { track, trackDebounced } from "@/lib/client/logger";
-import { Badge, Button, Card, Empty, Input, SectionTitle, Spinner, Textarea, clsx, clusterColor } from "../../ui";
+import { useDialog } from "../../dialogs";
+import { springs } from "../../motion";
+import { Badge, Button, Card, Collapse, Empty, Input, SectionTitle, Spinner, Textarea, clsx, clusterColor } from "../../ui";
 import { useRoomCtx } from "../context";
 import { Discussion, DiscussionCount } from "../Discussion";
+import { DraggableItem, dropClass, useDragToDrop } from "../dnd";
 import { useMaterials } from "../hooks";
 import { MaterialDetail } from "../MaterialDetail";
 import { PlanSummary } from "../PlanSummary";
@@ -28,12 +32,11 @@ export function OrganizeStage() {
   const updatePresence = useUpdateMyPresence();
   const [showHold, setShowHold] = useState(false);
   const [viewing, setViewing] = useState<Material | null>(null);
-  const [dragging, setDragging] = useState<string | null>(null);
   const byId = useMemo(() => new Map((materials ?? []).map((m) => [m.id, m])), [materials]);
 
   const placedCount = useMemo(() => {
     const m = new Map<string, number>();
-    (outline ?? []).forEach((s) => s.materialIds.forEach((id) => m.set(id, (m.get(id) ?? 0) + 1)));
+    outline.forEach((s) => s.materialIds.forEach((id) => m.set(id, (m.get(id) ?? 0) + 1)));
     return m;
   }, [outline]);
 
@@ -58,8 +61,11 @@ export function OrganizeStage() {
     const s = storage.get("outline").find((x) => x.get("id") === sectionId);
     if (!s || s.get("materialIds").indexOf(materialId) >= 0) return;
     s.get("materialIds").push(materialId);
-    track("outline.place", { sectionId, materialId }, { stage: "organize" });
+    track("outline.place", { sectionId, materialId, via: "drag" }, { stage: "organize" });
   }, []);
+
+  const onDrop = useCallback((materialId: string, sectionId: string) => place(sectionId, materialId), [place]);
+  const dnd = useDragToDrop(onDrop);
 
   if (!materials) {
     return (
@@ -82,7 +88,7 @@ export function OrganizeStage() {
       />
       <PlanSummary className="mb-4" />
       <div className="grid gap-5 lg:grid-cols-[minmax(260px,340px)_1fr]">
-        <aside className="lg:sticky lg:top-20 lg:self-start">
+        <aside className="lg:sticky lg:top-28 lg:self-start">
           <Card className="p-4">
             <div className="mb-2 flex items-center justify-between">
               <h3 className="font-bold">선정한 자료</h3>
@@ -113,26 +119,24 @@ export function OrganizeStage() {
                           if (!m) return null;
                           const n = placedCount.get(id) ?? 0;
                           return (
-                            <li
+                            <DraggableItem
                               key={id}
-                              draggable={canEdit}
-                              onDragStart={(e) => {
-                                e.dataTransfer.setData("text/material-id", id);
-                                setDragging(id);
-                              }}
-                              onDragEnd={() => setDragging(null)}
+                              id={id}
+                              enabled={canEdit}
+                              handlers={dnd.handlers(id)}
                               className={clsx(
                                 "flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm",
-                                canEdit && "cursor-grab",
+                                canEdit && "cursor-grab active:cursor-grabbing",
                                 n ? "border-line bg-surface-2" : "border-line-strong bg-surface",
                               )}
                             >
-                              <button onClick={() => setViewing(m)} className="min-w-0 flex-1 truncate text-left hover:text-accent">
+                              {canEdit ? <GripVertical size={14} className="shrink-0 text-ink-3" aria-hidden /> : null}
+                              <button onClick={() => setViewing(m)} onPointerDown={(e) => e.stopPropagation()} className="min-w-0 flex-1 truncate text-left hover:text-accent">
                                 {m.title}
                               </button>
                               {status(id) === "hold" ? <Badge tone="warn">보류</Badge> : null}
                               {n ? <Badge tone="ok">{n}곳</Badge> : null}
-                            </li>
+                            </DraggableItem>
                           );
                         })}
                       </ul>
@@ -154,7 +158,7 @@ export function OrganizeStage() {
                 total={outline.length}
                 byId={byId}
                 canEdit={canEdit}
-                dragging={dragging}
+                over={dnd.over === s.id && !!dnd.dragging && !s.materialIds.includes(dnd.dragging)}
                 candidates={materials.filter((m) => visible(m.id) && !s.materialIds.includes(m.id))}
                 onPlace={(mid) => place(s.id, mid)}
                 onOpen={setViewing}
@@ -182,7 +186,7 @@ function SectionCard({
   total,
   byId,
   canEdit,
-  dragging,
+  over,
   candidates,
   onPlace,
   onOpen,
@@ -193,14 +197,14 @@ function SectionCard({
   total: number;
   byId: Map<string, Material>;
   canEdit: boolean;
-  dragging: string | null;
+  over: boolean;
   candidates: Material[];
   onPlace: (materialId: string) => void;
   onOpen: (m: Material) => void;
   onFocus: () => void;
 }) {
-  const [over, setOver] = useState(false);
   const [talk, setTalk] = useState(false);
+  const { confirm } = useDialog();
 
   const update = useMutation(({ storage }, field: "title" | "point" | "role", value: string) => {
     storage.get("outline").find((x) => x.get("id") === s.id)?.set(field, value as never);
@@ -238,23 +242,25 @@ function SectionCard({
     track("outline.delete_section", { sectionId: s.id }, { stage: "organize" });
   }, [s.id]);
 
+  async function onRemove() {
+    if (s.materialIds.length === 0) return remove();
+    const ok = await confirm({
+      title: `‘${s.title}’ 칸을 지울까요?`,
+      body: `이 칸에 넣어 둔 자료 ${s.materialIds.length}개는 왼쪽 목록에 그대로 남아요.`,
+      confirmLabel: "지우기",
+      danger: true,
+    });
+    if (ok) remove();
+  }
+
   return (
-    <li
+    <motion.li
+      layout
+      transition={springs.default}
+      data-drop={s.id}
       onMouseEnter={onFocus}
       onFocusCapture={onFocus}
-      onDragOver={(e) => {
-        if (!canEdit || !dragging) return;
-        e.preventDefault();
-        setOver(true);
-      }}
-      onDragLeave={() => setOver(false)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setOver(false);
-        const id = e.dataTransfer.getData("text/material-id");
-        if (id) onPlace(id);
-      }}
-      className={clsx("rounded-xl border bg-surface", over ? "border-accent shadow-[0_0_0_3px_rgba(47,91,234,0.15)]" : "border-line")}
+      className={clsx("rounded-xl border bg-surface transition-[border-color,box-shadow] duration-150", dropClass(over))}
     >
       <div className="flex flex-wrap items-start gap-3 p-4">
         <select
@@ -302,12 +308,7 @@ function SectionCard({
               <Button size="sm" variant="ghost" onClick={() => reorder(1)} disabled={index === total - 1} aria-label="아래로">
                 <ArrowDown size={15} />
               </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => (s.materialIds.length === 0 || confirm(`'${s.title}' 칸을 지울까요?`)) && remove()}
-                aria-label="칸 지우기"
-              >
+              <Button size="sm" variant="ghost" onClick={onRemove} aria-label="칸 지우기">
                 <Trash2 size={15} />
               </Button>
             </>
@@ -316,41 +317,53 @@ function SectionCard({
       </div>
 
       <div className="border-t border-line px-4 py-3">
-        {s.materialIds.length ? (
-          <ol className="space-y-1.5">
-            {s.materialIds.map((id, j) => {
-              const m = byId.get(id);
-              return (
-                <li key={id} className="flex items-center gap-2 rounded-lg bg-surface-2 px-2.5 py-1.5 text-sm">
-                  <span className="text-xs tabular-nums text-ink-3">{j + 1}</span>
-                  <button onClick={() => m && onOpen(m)} className="min-w-0 flex-1 truncate text-left hover:text-accent">
-                    {m?.title ?? "지워진 자료"}
-                  </button>
-                  {canEdit ? (
-                    <span className="flex items-center">
-                      <button onClick={() => moveMaterial(id, -1)} disabled={j === 0} className="p-0.5 text-ink-3 hover:text-ink disabled:opacity-30" aria-label="앞으로">
-                        <ArrowUp size={13} />
-                      </button>
-                      <button
-                        onClick={() => moveMaterial(id, 1)}
-                        disabled={j === s.materialIds.length - 1}
-                        className="p-0.5 text-ink-3 hover:text-ink disabled:opacity-30"
-                        aria-label="뒤로"
-                      >
-                        <ArrowDown size={13} />
-                      </button>
-                      <button onClick={() => unplace(id)} className="p-0.5 text-ink-3 hover:text-bad" aria-label="칸에서 빼기">
-                        <X size={14} />
-                      </button>
-                    </span>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ol>
-        ) : (
-          <p className="py-1 text-center text-[13px] text-ink-3">{canEdit ? "자료를 끌어다 놓거나 아래에서 골라요." : "넣은 자료 없음"}</p>
-        )}
+        <AnimatePresence initial={false}>
+          {s.materialIds.length ? (
+            <ol className="space-y-1.5">
+              {s.materialIds.map((id, j) => {
+                const m = byId.get(id);
+                return (
+                  <motion.li
+                    key={id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    transition={springs.quick}
+                    className="flex items-center gap-2 rounded-lg bg-surface-2 px-2.5 py-1.5 text-sm"
+                  >
+                    <span className="text-xs tabular-nums text-ink-3">{j + 1}</span>
+                    <button onClick={() => m && onOpen(m)} className="min-w-0 flex-1 truncate text-left hover:text-accent">
+                      {m?.title ?? "지워진 자료"}
+                    </button>
+                    {canEdit ? (
+                      <span className="flex items-center">
+                        <button onClick={() => moveMaterial(id, -1)} disabled={j === 0} className="pressable p-0.5 text-ink-3 hover:text-ink disabled:opacity-30" aria-label="앞으로">
+                          <ArrowUp size={13} />
+                        </button>
+                        <button
+                          onClick={() => moveMaterial(id, 1)}
+                          disabled={j === s.materialIds.length - 1}
+                          className="pressable p-0.5 text-ink-3 hover:text-ink disabled:opacity-30"
+                          aria-label="뒤로"
+                        >
+                          <ArrowDown size={13} />
+                        </button>
+                        <button onClick={() => unplace(id)} className="pressable p-0.5 text-ink-3 hover:text-bad" aria-label="칸에서 빼기">
+                          <X size={14} />
+                        </button>
+                      </span>
+                    ) : null}
+                  </motion.li>
+                );
+              })}
+            </ol>
+          ) : (
+            <motion.p key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="py-1 text-center text-[13px] text-ink-3">
+              {canEdit ? (over ? "여기에 놓으세요" : "자료를 끌어다 놓거나 아래에서 골라요.") : "넣은 자료 없음"}
+            </motion.p>
+          )}
+        </AnimatePresence>
         {canEdit && candidates.length ? (
           <select
             value=""
@@ -367,11 +380,11 @@ function SectionCard({
           </select>
         ) : null}
       </div>
-      {talk ? (
+      <Collapse open={talk}>
         <div className="border-t border-line bg-surface-2 px-4 py-3">
           <Discussion stage="organize" target={s.id} placeholder="이 칸에 어떤 자료를 어떤 순서로 쓸지 의견을 남겨요" />
         </div>
-      ) : null}
-    </li>
+      </Collapse>
+    </motion.li>
   );
 }

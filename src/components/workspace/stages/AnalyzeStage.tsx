@@ -9,6 +9,7 @@ import { api } from "@/lib/client/api";
 import { track } from "@/lib/client/logger";
 import { METHODS } from "@/lib/stages";
 import { Badge, Button, Card, Empty, Modal, Notice, SectionTitle, Spinner, Textarea, clsx, clusterColor } from "../../ui";
+import { useDialog } from "../../dialogs";
 import { ConditionsPanel, POS_OPTIONS, type Conditions } from "../analysis/Conditions";
 import { MorphemeStrip, PreprocessStats, RemovedLists, ResultView } from "../analysis/ResultView";
 import { useRoomCtx } from "../context";
@@ -49,6 +50,7 @@ export function AnalyzeStage({ onGoNext }: { onGoNext?: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [viewing, setViewing] = useState<Material | null>(null);
   const [preview, setPreview] = useState(false);
+  const { confirm } = useDialog();
   const seenRef = useRef(new Set<string>());
 
   useEffect(() => {
@@ -143,10 +145,16 @@ export function AnalyzeStage({ onGoNext }: { onGoNext?: () => void }) {
     [],
   );
 
-  function onAdopt() {
+  async function onAdopt() {
     if (!run || !materials) return;
-    if (board?.runId && namedCount > 0 && !confirm("이미 이름을 붙인 묶음이 있어요. 이 결과로 바꾸면 묶음 이름과 메모가 사라져요(선정·보류·제외 판단은 남아요). 바꿀까요?")) {
-      return;
+    if (board?.runId && namedCount > 0) {
+      const ok = await confirm({
+        title: "이 결과로 묶음을 다시 만들까요?",
+        body: "이미 이름을 붙인 묶음이 있어요. 바꾸면 묶음 이름과 메모가 사라져요. 선정·보류·제외 판단은 남아요.",
+        confirmLabel: "다시 만들기",
+        danger: true,
+      });
+      if (!ok) return;
     }
     adopt(run, materials.map((m) => m.id));
     track("analysis.adopt", { runId: run.id, method: run.method, replaced: board?.runId ?? null }, { stage: "analyze" });

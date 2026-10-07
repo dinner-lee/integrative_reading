@@ -3,20 +3,23 @@
 import { LiveList, LiveObject } from "@liveblocks/client";
 import { useMutation, useStorage, useUpdateMyPresence } from "@liveblocks/react/suspense";
 import { ArrowDown, ArrowUp, ChevronDown, GripVertical, Plus, Trash2 } from "lucide-react";
+import { AnimatePresence, LayoutGroup, Reorder, motion, useDragControls } from "motion/react";
 import { nanoid } from "nanoid";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { track, trackDebounced } from "@/lib/client/logger";
+import { mediaLabel } from "@/lib/media";
 import { METHODS } from "@/lib/stages";
 import type { Decision } from "../../../../liveblocks.config";
-import { Badge, Button, Empty, Input, Notice, SectionTitle, Spinner, Textarea, clsx, clusterColor } from "../../ui";
+import { springs } from "../../motion";
+import { Badge, Button, Collapse, Empty, Input, Notice, SectionTitle, Spinner, Textarea, clsx, clusterColor } from "../../ui";
 import { userKey, useRoomCtx } from "../context";
 import { Discussion, DiscussionCount } from "../Discussion";
+import { DraggableItem, dropClass, useDragToDrop } from "../dnd";
 import { useMaterials } from "../hooks";
 import { MaterialDetail } from "../MaterialDetail";
 import { PlanSummary } from "../PlanSummary";
 import { FocusDots } from "../Presence";
 import type { Material } from "../types";
-import { mediaLabel } from "@/lib/media";
 
 export const DECISIONS: { value: Decision; label: string; tone: "ok" | "warn" | "bad" | "neutral"; prompt: string }[] = [
   { value: "selected", label: "선정", tone: "ok", prompt: "글의 목적·독자에 왜 맞는지" },
@@ -28,16 +31,16 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
   const { groupId, canEdit, viewer } = useRoomCtx();
   const { materials } = useMaterials(groupId);
   // 읽기 전용으로 아직 만들어지지 않은 방을 열면 저장소가 비어 있을 수 있다
-  const clusters = useStorage((root) => root.clusters ?? null) ?? [];
+  const clustersRaw = useStorage((root) => root.clusters ?? null);
+  const clusters = useMemo(() => clustersRaw ?? [], [clustersRaw]);
   const decisions = useStorage((root) => root.decisions);
   const board = useStorage((root) => root.board);
   const updatePresence = useUpdateMyPresence();
   const [viewing, setViewing] = useState<Material | null>(null);
-  const [dragging, setDragging] = useState<string | null>(null);
   const byId = useMemo(() => new Map((materials ?? []).map((m) => [m.id, m])), [materials]);
   const me = userKey(viewer.role, viewer.id);
 
-  const placed = new Set((clusters ?? []).flatMap((c) => c.materialIds));
+  const placed = new Set(clusters.flatMap((c) => c.materialIds));
   const unplaced = (materials ?? []).filter((m) => !placed.has(m.id));
 
   const startManual = useMutation(({ storage }, ids: string[]) => {
@@ -69,6 +72,14 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
     track("cluster.move_material", { materialId, from, to: toClusterId }, { stage: "generate" });
   }, []);
 
+  const moveCluster = useMutation(({ storage }, id: string, to: number) => {
+    const list = storage.get("clusters");
+    const from = list.findIndex((x) => x.get("id") === id);
+    if (from < 0 || to < 0 || to >= list.length || from === to) return;
+    list.move(from, to);
+    track("cluster.reorder", { clusterId: id, from, to, via: "drag" }, { stage: "generate" });
+  }, []);
+
   const setDecision = useMutation(
     ({ storage }, materialId: string, patch: { status?: Decision; reason?: string }) => {
       const map = storage.get("decisions");
@@ -85,6 +96,25 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
     [me],
   );
 
+  // 자료를 다른 묶음에 놓기 (놓은 자리가 같은 묶음이면 무시)
+  const onDrop = useCallback(
+    (materialId: string, targetId: string) => {
+      const owner = clusters.find((c) => c.materialIds.includes(materialId));
+      if (owner?.id !== targetId) moveMaterial(materialId, targetId);
+    },
+    [clusters, moveMaterial],
+  );
+  const dnd = useDragToDrop(onDrop);
+
+  // 묶음 우선순위 드래그: 끄는 동안은 로컬 순서, 놓으면 한 번만 저장
+  const liveOrder = clusters.map((c) => c.id);
+  const [localOrder, setLocalOrder] = useState<string[] | null>(null);
+  const order = localOrder ?? liveOrder;
+  const commitOrder = (id: string) => {
+    if (localOrder) moveCluster(id, localOrder.indexOf(id));
+    setLocalOrder(null);
+  };
+
   if (!materials) {
     return (
       <div className="flex items-center gap-2 py-10 text-sm text-ink-3">
@@ -95,6 +125,7 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
 
   const counts = { selected: 0, hold: 0, excluded: 0, undecided: 0 };
   materials.forEach((m) => counts[(decisions?.[m.id]?.status ?? "undecided") as Decision]++);
+  const clusterById = new Map(clusters.map((c) => [c.id, c]));
 
   return (
     <div>
@@ -172,26 +203,34 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
             </Notice>
           ) : null}
 
-          <ol className="space-y-4">
-            {clusters.map((c, i) => (
-              <ClusterCard
-                key={c.id}
-                index={i}
-                total={clusters.length}
-                cluster={c}
-                byId={byId}
-                decisions={decisions}
-                canEdit={canEdit}
-                allClusters={clusters.map((x) => ({ id: x.id, name: x.name }))}
-                onOpen={setViewing}
-                onMove={moveMaterial}
-                onDecision={setDecision}
-                dragging={dragging}
-                setDragging={setDragging}
-                onFocus={() => updatePresence({ focus: c.id })}
-              />
-            ))}
-          </ol>
+          <LayoutGroup id={`gen-${groupId}`}>
+            <Reorder.Group as="ol" axis="y" values={order} onReorder={setLocalOrder} className="space-y-4">
+              {order.map((id, i) => {
+                const c = clusterById.get(id);
+                if (!c) return null;
+                return (
+                  <ClusterCard
+                    key={id}
+                    index={i}
+                    total={order.length}
+                    cluster={c}
+                    byId={byId}
+                    decisions={decisions}
+                    canEdit={canEdit}
+                    allClusters={clusters.map((x) => ({ id: x.id, name: x.name }))}
+                    onOpen={setViewing}
+                    onMove={moveMaterial}
+                    onMoveCluster={(dir) => moveCluster(id, i + dir)}
+                    onDecision={setDecision}
+                    dnd={dnd}
+                    onReorderStart={() => setLocalOrder(liveOrder)}
+                    onReorderEnd={() => commitOrder(id)}
+                    onFocus={() => updatePresence({ focus: c.id })}
+                  />
+                );
+              })}
+            </Reorder.Group>
+          </LayoutGroup>
         </>
       )}
       <MaterialDetail material={viewing} onClose={() => setViewing(null)} stage="generate" />
@@ -211,9 +250,11 @@ function ClusterCard({
   allClusters,
   onOpen,
   onMove,
+  onMoveCluster,
   onDecision,
-  dragging,
-  setDragging,
+  dnd,
+  onReorderStart,
+  onReorderEnd,
   onFocus,
 }: {
   index: number;
@@ -225,28 +266,24 @@ function ClusterCard({
   allClusters: { id: string; name: string }[];
   onOpen: (m: Material) => void;
   onMove: (materialId: string, to: string) => void;
+  onMoveCluster: (dir: -1 | 1) => void;
   onDecision: (materialId: string, patch: { status?: Decision; reason?: string }) => void;
-  dragging: string | null;
-  setDragging: (id: string | null) => void;
+  dnd: ReturnType<typeof useDragToDrop>;
+  onReorderStart: () => void;
+  onReorderEnd: () => void;
   onFocus: () => void;
 }) {
-  const [over, setOver] = useState(false);
   const [talk, setTalk] = useState(false);
   const color = clusterColor(index);
+  const controls = useDragControls();
+  const over = dnd.over === c.id && !!dnd.dragging && !c.materialIds.includes(dnd.dragging);
+  // 끌고 있는 자료가 든 묶음을 위로 올려, 다음 묶음 카드 아래로 숨지 않게 한다
+  const lifting = !!dnd.dragging && c.materialIds.includes(dnd.dragging);
 
   const update = useMutation(({ storage }, field: "name" | "note", value: string) => {
     const obj = storage.get("clusters").find((x) => x.get("id") === c.id);
     obj?.set(field, value);
     trackDebounced(`cluster.${field}.${c.id}`, field === "name" ? "cluster.rename" : "cluster.note", { clusterId: c.id, value }, { stage: "generate" });
-  }, [c.id]);
-
-  const reorder = useMutation(({ storage }, dir: -1 | 1) => {
-    const list = storage.get("clusters");
-    const from = list.findIndex((x) => x.get("id") === c.id);
-    const to = from + dir;
-    if (from < 0 || to < 0 || to >= list.length) return;
-    list.move(from, to);
-    track("cluster.reorder", { clusterId: c.id, from, to }, { stage: "generate" });
   }, [c.id]);
 
   const remove = useMutation(({ storage }) => {
@@ -259,26 +296,33 @@ function ClusterCard({
   }, [c.id]);
 
   return (
-    <li
+    <Reorder.Item
+      as="li"
+      value={c.id}
+      dragListener={false}
+      dragControls={controls}
+      onDragStart={onReorderStart}
+      onDragEnd={onReorderEnd}
+      whileDrag={{ scale: 1.01, boxShadow: "0 24px 60px -24px rgb(0 0 0 / 0.35)", zIndex: 30 }}
+      transition={springs.default}
+      data-drop={c.id}
       onFocusCapture={onFocus}
       onMouseEnter={onFocus}
-      onDragOver={(e) => {
-        if (!canEdit || !dragging) return;
-        e.preventDefault();
-        setOver(true);
-      }}
-      onDragLeave={() => setOver(false)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setOver(false);
-        const id = e.dataTransfer.getData("text/material-id");
-        if (id && !c.materialIds.includes(id)) onMove(id, c.id);
-        setDragging(null);
-      }}
-      className={clsx("rounded-xl border bg-surface transition-shadow", over ? "border-accent shadow-[0_0_0_3px_rgba(47,91,234,0.15)]" : "border-line")}
-      style={{ borderLeft: `5px solid ${color}` }}
+      className={clsx("relative rounded-xl border bg-surface transition-[border-color,box-shadow] duration-150", dropClass(over))}
+      style={{ borderLeft: `5px solid ${color}`, zIndex: lifting ? 50 : undefined }}
     >
       <div className="flex flex-wrap items-start gap-3 p-4 pb-3">
+        {canEdit ? (
+          <button
+            type="button"
+            onPointerDown={(e) => controls.start(e)}
+            className="mt-1 cursor-grab touch-none rounded-lg p-1 text-ink-3 hover:bg-paper-2 active:cursor-grabbing"
+            aria-label="끌어서 우선순위 바꾸기"
+            title="끌어서 우선순위 바꾸기"
+          >
+            <GripVertical size={16} />
+          </button>
+        ) : null}
         <span className="mt-1.5 text-sm font-bold tabular-nums" style={{ color }} title="우선순위">
           {index + 1}
         </span>
@@ -323,10 +367,10 @@ function ClusterCard({
           </Button>
           {canEdit ? (
             <>
-              <Button size="sm" variant="ghost" onClick={() => reorder(-1)} disabled={index === 0} aria-label="우선순위 올리기">
+              <Button size="sm" variant="ghost" onClick={() => onMoveCluster(-1)} disabled={index === 0} aria-label="우선순위 올리기">
                 <ArrowUp size={15} />
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => reorder(1)} disabled={index === total - 1} aria-label="우선순위 내리기">
+              <Button size="sm" variant="ghost" onClick={() => onMoveCluster(1)} disabled={index === total - 1} aria-label="우선순위 내리기">
                 <ArrowDown size={15} />
               </Button>
               {c.materialIds.length === 0 ? (
@@ -339,39 +383,42 @@ function ClusterCard({
         </div>
       </div>
 
-      {talk ? (
+      <Collapse open={talk}>
         <div className="border-t border-line bg-surface-2 px-4 py-3">
           <Discussion stage="generate" target={c.id} placeholder="이 묶음의 이름이나 자료 선택에 대해 의견을 남겨요" />
         </div>
-      ) : null}
+      </Collapse>
 
       <ul className="divide-y divide-line border-t border-line">
-        {c.materialIds.length === 0 ? (
-          <li className="px-4 py-4 text-center text-[13px] text-ink-3">{canEdit ? "다른 묶음에서 자료를 끌어다 놓을 수 있어요." : "자료 없음"}</li>
-        ) : null}
-        {c.materialIds.map((id) => {
-          const m = byId.get(id);
-          if (!m) return null;
-          const d = decisions?.[id];
-          return (
-            <MaterialRow
-              key={id}
-              m={m}
-              status={d?.status ?? "undecided"}
-              reason={d?.reason ?? ""}
-              canEdit={canEdit}
-              clusterId={c.id}
-              allClusters={allClusters}
-              onOpen={() => onOpen(m)}
-              onMove={(to) => onMove(id, to)}
-              onDecision={(p) => onDecision(id, p)}
-              onDragStart={() => setDragging(id)}
-              onDragEnd={() => setDragging(null)}
-            />
-          );
-        })}
+        <AnimatePresence initial={false}>
+          {c.materialIds.length === 0 ? (
+            <motion.li key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-4 py-4 text-center text-[13px] text-ink-3">
+              {canEdit ? (over ? "여기에 놓으세요" : "다른 묶음에서 자료를 끌어다 놓을 수 있어요.") : "자료 없음"}
+            </motion.li>
+          ) : null}
+          {c.materialIds.map((id) => {
+            const m = byId.get(id);
+            if (!m) return null;
+            const d = decisions?.[id];
+            return (
+              <DraggableItem key={id} id={id} layoutId={`mat-${id}`} enabled={canEdit} handlers={dnd.handlers(id)} className={clsx("bg-surface", d?.status === "excluded" && "bg-surface-2")}>
+                <MaterialRow
+                  m={m}
+                  status={d?.status ?? "undecided"}
+                  reason={d?.reason ?? ""}
+                  canEdit={canEdit}
+                  clusterId={c.id}
+                  allClusters={allClusters}
+                  onOpen={() => onOpen(m)}
+                  onMove={(to) => onMove(id, to)}
+                  onDecision={(p) => onDecision(id, p)}
+                />
+              </DraggableItem>
+            );
+          })}
+        </AnimatePresence>
       </ul>
-    </li>
+    </Reorder.Item>
   );
 }
 
@@ -385,8 +432,6 @@ function MaterialRow({
   onOpen,
   onMove,
   onDecision,
-  onDragStart,
-  onDragEnd,
 }: {
   m: Material;
   status: Decision;
@@ -397,31 +442,24 @@ function MaterialRow({
   onOpen: () => void;
   onMove: (to: string) => void;
   onDecision: (p: { status?: Decision; reason?: string }) => void;
-  onDragStart: () => void;
-  onDragEnd: () => void;
 }) {
   const def = DECISIONS.find((d) => d.value === status);
   return (
-    <li
-      draggable={canEdit}
-      onDragStart={(e) => {
-        e.dataTransfer.setData("text/material-id", m.id);
-        e.dataTransfer.effectAllowed = "move";
-        onDragStart();
-      }}
-      onDragEnd={onDragEnd}
-      className={clsx("px-4 py-3", status === "excluded" && "bg-surface-2")}
-    >
+    <div className="px-4 py-3">
       <div className="flex flex-wrap items-center gap-2">
-        {canEdit ? <GripVertical size={15} className="shrink-0 cursor-grab text-ink-3" aria-hidden /> : null}
-        <button onClick={onOpen} className={clsx("min-w-0 flex-1 text-left text-sm font-semibold hover:text-accent", status === "excluded" && "text-ink-3 line-through")}>
+        {canEdit ? <GripVertical size={15} className="shrink-0 text-ink-3" aria-hidden /> : null}
+        <button
+          onClick={onOpen}
+          onPointerDown={(e) => e.stopPropagation()}
+          className={clsx("min-w-0 flex-1 text-left text-sm font-semibold hover:text-accent", status === "excluded" && "text-ink-3 line-through")}
+        >
           {m.title}
           <span className="ml-2 text-xs font-normal text-ink-3">
             {m.isOnline ? "온라인" : "오프라인"} {mediaLabel(m.mediaType)}
             {m.source ? `, ${m.source}` : ""}
           </span>
         </button>
-        <div className="flex items-center gap-1" role="radiogroup" aria-label="판단">
+        <div className="flex items-center gap-1" role="radiogroup" aria-label="판단" onPointerDown={(e) => e.stopPropagation()}>
           {DECISIONS.map((d) => (
             <button
               key={d.value}
@@ -430,7 +468,7 @@ function MaterialRow({
               disabled={!canEdit}
               onClick={() => onDecision({ status: status === d.value ? "undecided" : d.value })}
               className={clsx(
-                "h-7 rounded-lg border px-2.5 text-[13px] font-medium transition-colors disabled:cursor-default",
+                "pressable h-7 rounded-lg border px-2.5 text-[13px] font-medium disabled:cursor-default",
                 status === d.value
                   ? d.tone === "ok"
                     ? "border-ok bg-ok text-on-accent"
@@ -465,8 +503,8 @@ function MaterialRow({
           ) : null}
         </div>
       </div>
-      {status !== "undecided" ? (
-        <div className="mt-2 pl-6">
+      <Collapse open={status !== "undecided"}>
+        <div className="mt-2 pl-6" onPointerDown={(e) => e.stopPropagation()}>
           {canEdit ? (
             <Input
               value={reason}
@@ -479,7 +517,7 @@ function MaterialRow({
             <p className="text-sm text-ink-2">근거: {reason || "아직 없음"}</p>
           )}
         </div>
-      ) : null}
-    </li>
+      </Collapse>
+    </div>
   );
 }

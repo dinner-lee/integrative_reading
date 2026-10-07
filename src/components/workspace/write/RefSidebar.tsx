@@ -5,6 +5,7 @@ import type { Editor } from "@tiptap/react";
 import { ChevronDown, ChevronRight, ListPlus, Quote, TextQuote } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { track } from "@/lib/client/logger";
+import { useToast } from "../../toast";
 import { citation, mediaLabel } from "@/lib/media";
 import { Badge, Button, clsx, clusterColor } from "../../ui";
 import { PlanSummary } from "../PlanSummary";
@@ -186,6 +187,7 @@ function MaterialItem({
 }) {
   const [open, setOpen] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const toast = useToast();
   const st = status && status in STATUS ? STATUS[status as keyof typeof STATUS] : null;
   const cite = `(${[m.source, `「${m.title}」`].filter(Boolean).join(", ")})`;
 
@@ -193,7 +195,7 @@ function MaterialItem({
     const sel = window.getSelection();
     const text = sel && bodyRef.current?.contains(sel.anchorNode) ? sel.toString().trim() : "";
     if (!text) {
-      alert("아래 자료 내용에서 넣고 싶은 부분을 먼저 드래그해서 골라 주세요.");
+      toast({ message: "아래 자료 내용에서 넣고 싶은 부분을 먼저 드래그해서 골라 주세요.", tone: "bad" });
       return;
     }
     onInsert?.(`<blockquote><p>${esc(text)}</p></blockquote><p>${esc(cite)}</p>`, "quote", { materialId: m.id, chars: text.length });

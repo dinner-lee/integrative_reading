@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/client/api";
 import { METHODS, STAGES, WRITING_MODES, type WritingMode } from "@/lib/stages";
+import { useDialog } from "../dialogs";
 import { Badge, Button, Card, Notice, Spinner, clsx } from "../ui";
 
 type Classroom = {
@@ -65,6 +66,7 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [origin, setOrigin] = useState("");
+  const { confirm, prompt } = useDialog();
 
   const load = useCallback(async () => {
     try {
@@ -148,8 +150,8 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
         <button
           className="text-ink-3 hover:text-ink"
           aria-label="이름 바꾸기"
-          onClick={() => {
-            const name = prompt("학급 이름", c.name)?.trim();
+          onClick={async () => {
+            const name = await prompt({ title: "학급 이름 바꾸기", label: "학급 이름", defaultValue: c.name, confirmLabel: "바꾸기" });
             if (name) patch({ name });
           }}
         >
@@ -181,10 +183,14 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() =>
-                    confirm("새 코드를 만들면 지금 코드와 링크로는 들어올 수 없어요(이미 들어온 학생은 괜찮아요). 바꿀까요?") &&
-                    action(() => api(`/api/teacher/classrooms/${classroomId}/invite`, { method: "POST" }))
-                  }
+                  onClick={async () => {
+                    const ok = await confirm({
+                      title: "초대 코드를 새로 만들까요?",
+                      body: "지금 코드와 링크로는 더 들어올 수 없어요. 이미 들어온 학생은 그대로예요.",
+                      confirmLabel: "새 코드 만들기",
+                    });
+                    if (ok) action(() => api(`/api/teacher/classrooms/${classroomId}/invite`, { method: "POST" }));
+                  }}
                 >
                   <RefreshCw size={14} /> 새 코드
                 </Button>
@@ -384,8 +390,8 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
                       size="sm"
                       variant="ghost"
                       aria-label="모둠 이름 바꾸기"
-                      onClick={() => {
-                        const name = prompt("모둠 이름", g.name)?.trim();
+                      onClick={async () => {
+                        const name = await prompt({ title: "모둠 이름 바꾸기", label: "모둠 이름", defaultValue: g.name, confirmLabel: "바꾸기", maxLength: 30 });
                         if (name) action(() => api(`/api/teacher/groups/${g.id}`, { method: "PATCH", json: { name } }));
                       }}
                     >
@@ -396,7 +402,10 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
                         size="sm"
                         variant="ghost"
                         aria-label="모둠 지우기"
-                        onClick={() => confirm(`${g.name}을 지울까요?`) && action(() => api(`/api/teacher/groups/${g.id}`, { method: "DELETE" }))}
+                        onClick={async () => {
+                          if (await confirm({ title: `${g.name}을 지울까요?`, confirmLabel: "지우기", danger: true }))
+                            action(() => api(`/api/teacher/groups/${g.id}`, { method: "DELETE" }));
+                        }}
                       >
                         <Trash2 size={14} />
                       </Button>
@@ -423,7 +432,15 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
           <Button
             variant="danger"
             onClick={async () => {
-              if (prompt(`학급과 모든 자료·기록이 지워져요. 지우려면 학급 이름(${c.name})을 그대로 쓰세요.`) !== c.name) return;
+              const typed = await prompt({
+                title: "학급을 지울까요?",
+                body: "학급과 모든 자료, 분석 기록, 활동 로그가 지워져요. 먼저 내보내기를 받아 두세요.",
+                label: "학급 이름",
+                mustMatch: c.name,
+                confirmLabel: "학급 지우기",
+                danger: true,
+              });
+              if (typed !== c.name) return;
               await api(`/api/teacher/classrooms/${classroomId}`, { method: "DELETE" });
               router.replace("/teacher");
             }}
@@ -437,6 +454,7 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
 }
 
 function StudentChip({ s, groups, action }: { s: Student; groups: Group[]; action: (fn: () => Promise<unknown>) => void }) {
+  const { confirm } = useDialog();
   return (
     <li className="flex items-center gap-1 rounded-lg border border-line bg-surface py-1 pl-2.5 pr-1 text-sm">
       <span className="font-medium" title={`마지막 접속 ${new Date(s.lastSeenAt).toLocaleString("ko-KR")}`}>
@@ -456,7 +474,10 @@ function StudentChip({ s, groups, action }: { s: Student; groups: Group[]; actio
         ))}
       </select>
       <button
-        onClick={() => confirm(`${s.name} 학생을 학급에서 뺄까요? 이 학생이 올린 자료는 남아요.`) && action(() => api(`/api/teacher/students/${s.id}`, { method: "DELETE" }))}
+        onClick={async () => {
+          if (await confirm({ title: `${s.name} 학생을 학급에서 뺄까요?`, body: "이 학생이 올린 자료는 남아요.", confirmLabel: "빼기", danger: true }))
+            action(() => api(`/api/teacher/students/${s.id}`, { method: "DELETE" }));
+        }}
         className="p-1 text-ink-3 hover:text-bad"
         aria-label={`${s.name} 빼기`}
       >

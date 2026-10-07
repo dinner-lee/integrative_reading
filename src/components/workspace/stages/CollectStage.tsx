@@ -1,8 +1,11 @@
 "use client";
 
 import { FileText, Pencil, Plus, Trash2 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useMemo, useState } from "react";
 import { api } from "@/lib/client/api";
+import { springs } from "../../motion";
+import { useToast } from "../../toast";
 import { Button, Card, Empty, Modal, Notice, Segmented, SectionTitle, Spinner } from "../../ui";
 import { useRoomCtx } from "../context";
 import { useMaterials } from "../hooks";
@@ -17,6 +20,7 @@ export function CollectStage() {
   const [editing, setEditing] = useState<Material | "new" | null>(null);
   const [viewing, setViewing] = useState<Material | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const toast = useToast();
 
   const list = useMemo(
     () => (materials ?? []).filter((m) => filter === "all" || m.author?.id === viewer.id),
@@ -24,12 +28,26 @@ export function CollectStage() {
   );
   const onlineCount = (materials ?? []).filter((m) => m.isOnline).length;
 
+  // 바로 지우고 되돌릴 기회를 준다 (확인 창은 되돌릴 수 없는 일에만)
   async function remove(m: Material) {
-    if (!confirm(`'${m.title}' 자료를 지울까요? 모둠원 모두에게서 사라져요.`)) return;
     try {
       await api(`/api/materials/${m.id}`, { method: "DELETE" });
       setDeleteError(null);
       notify();
+      toast({
+        message: `‘${m.title}’ 자료를 지웠어요.`,
+        action: {
+          label: "되돌리기",
+          onClick: async () => {
+            try {
+              await api(`/api/materials/${m.id}/restore`, { method: "POST" });
+              notify();
+            } catch (e) {
+              setDeleteError((e as Error).message);
+            }
+          },
+        },
+      });
     } catch (e) {
       setDeleteError((e as Error).message);
     }
@@ -84,8 +102,9 @@ export function CollectStage() {
       ) : null}
 
       <ul className="grid gap-3 md:grid-cols-2">
+        <AnimatePresence initial={false}>
         {list.map((m) => (
-          <li key={m.id}>
+          <motion.li key={m.id} layout initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={springs.default}>
             <Card className="flex h-full flex-col p-4">
               <MaterialMeta m={m} />
               <button onClick={() => setViewing(m)} className="mt-2 text-left text-[15px] font-bold leading-snug hover:text-accent">
@@ -111,8 +130,9 @@ export function CollectStage() {
                 ) : null}
               </div>
             </Card>
-          </li>
+          </motion.li>
         ))}
+        </AnimatePresence>
       </ul>
 
       <Modal open={editing !== null} onClose={() => setEditing(null)} title={editing === "new" ? "자료 등록" : "자료 고치기"} wide>

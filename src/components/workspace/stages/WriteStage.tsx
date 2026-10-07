@@ -2,9 +2,11 @@
 
 import type { Editor } from "@tiptap/react";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { useCallback, useState } from "react";
+import { AnimatePresence, LayoutGroup, motion, type PanInfo } from "motion/react";
+import { useCallback, useEffect, useState } from "react";
 import { GROUP_DRAFT_FIELD, studentDraftField } from "@/lib/rooms";
 import { track } from "@/lib/client/logger";
+import { project, springs } from "../../motion";
 import { Button, Spinner, clsx } from "../../ui";
 import { useRoomCtx } from "../context";
 import { useMaterials } from "../hooks";
@@ -12,6 +14,7 @@ import { DraftEditor } from "../write/DraftEditor";
 import { RefSidebar } from "../write/RefSidebar";
 
 type DocTab = { key: string; label: string; field: string; editable: boolean };
+const SIDEBAR_W = 300;
 
 export function WriteStage() {
   const { groupId, canEdit, viewer, members, writingMode } = useRoomCtx();
@@ -19,6 +22,17 @@ export function WriteStage() {
   const [editor, setEditor] = useState<Editor | null>(null);
   const [sidebar, setSidebar] = useState(true);
   const onEditor = useCallback((e: Editor | null) => setEditor(e), []);
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const on = () => {
+      setMobile(mq.matches);
+      if (mq.matches) setSidebar(false);
+    };
+    on();
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
 
   const isStudentInGroup = viewer.role === "student" && canEdit;
   const tabs: DocTab[] = [];
@@ -42,47 +56,95 @@ export function WriteStage() {
     );
   }
 
+  const panel = <RefSidebar editor={editor} materials={materials} canInsert={!!tab?.editable} />;
+
+  // 모바일 시트: 왼쪽에서 들어오고 왼쪽으로 나간다(같은 길). 놓는 속도의 방향으로 닫힐지 정한다.
+  function onSheetDragEnd(_: unknown, info: PanInfo) {
+    const projected = info.offset.x + project(info.velocity.x);
+    if (projected < -SIDEBAR_W * 0.4 || info.velocity.x < -600) setSidebar(false);
+  }
+
   return (
     <div className="-mx-4 sm:-mx-6">
       <div className="flex min-h-[calc(100dvh-120px)]">
-        <aside
-          className={clsx(
-            "shrink-0 border-r border-line bg-surface-2 transition-[width]",
-            sidebar ? "w-[300px] max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-30 max-md:shadow-xl" : "w-0 overflow-hidden",
-          )}
-        >
-          <div className="sticky top-[57px] h-[calc(100dvh-57px)]">
-            {sidebar ? <RefSidebar editor={editor} materials={materials} canInsert={!!tab?.editable} /> : null}
-          </div>
-        </aside>
+        {!mobile ? (
+          <motion.aside
+            initial={false}
+            animate={{ width: sidebar ? SIDEBAR_W : 0 }}
+            transition={springs.default}
+            className="shrink-0 overflow-hidden border-r border-line bg-surface-2"
+            aria-hidden={!sidebar}
+          >
+            <div className="sticky top-[104px] h-[calc(100dvh-104px)]" style={{ width: SIDEBAR_W }}>
+              {panel}
+            </div>
+          </motion.aside>
+        ) : null}
+        <AnimatePresence>
+          {mobile && sidebar ? (
+            <>
+              <motion.div
+                key="scrim"
+                className="fixed inset-0 z-30 bg-black/30"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => setSidebar(false)}
+              />
+              <motion.aside
+                key="sheet"
+                className="material-panel fixed inset-y-0 left-0 z-40 w-[300px] touch-none"
+                initial={{ x: -SIDEBAR_W }}
+                animate={{ x: 0 }}
+                exit={{ x: -SIDEBAR_W }}
+                transition={springs.sheet}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={{ left: 0.9, right: 0.05 }}
+                dragMomentum={false}
+                onDragEnd={onSheetDragEnd}
+                aria-label="개요와 자료"
+              >
+                {panel}
+              </motion.aside>
+            </>
+          ) : null}
+        </AnimatePresence>
+
         <section className="min-w-0 flex-1 bg-surface px-4 py-4 sm:px-8">
           <div className="mx-auto max-w-[1100px]">
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              <Button size="sm" variant="ghost" onClick={() => setSidebar((v) => !v)} aria-label={sidebar ? "사이드바 닫기" : "사이드바 열기"}>
+              <Button size="sm" variant="ghost" onClick={() => setSidebar((v) => !v)} aria-label={sidebar ? "사이드바 닫기" : "사이드바 열기"} aria-expanded={sidebar}>
                 {sidebar ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
                 <span className="max-sm:hidden">{sidebar ? "자료 닫기" : "개요·자료 보기"}</span>
               </Button>
               {tabs.length > 1 ? (
-                <div className="flex flex-wrap gap-1">
-                  {tabs.map((t) => (
-                    <button
-                      key={t.key}
-                      onClick={() => {
-                        setActive(t.key);
-                        track("write.switch_doc", { field: t.field }, { stage: "write" });
-                      }}
-                      className={clsx(
-                        "rounded-full px-3 py-1 text-sm",
-                        t.key === tab?.key ? "bg-ink font-semibold text-paper" : "bg-paper-2 text-ink-2 hover:bg-paper-3",
-                      )}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
+                <LayoutGroup id={`docs-${groupId}`}>
+                  <div className="flex flex-wrap gap-1" role="tablist">
+                    {tabs.map((t) => {
+                      const on = t.key === tab?.key;
+                      return (
+                        <button
+                          key={t.key}
+                          role="tab"
+                          aria-selected={on}
+                          onClick={() => {
+                            setActive(t.key);
+                            track("write.switch_doc", { field: t.field }, { stage: "write" });
+                          }}
+                          className={clsx("pressable relative rounded-full px-3 py-1 text-sm", on ? "font-semibold text-paper" : "bg-paper-2 text-ink-2 hover:bg-paper-3")}
+                        >
+                          {on ? <motion.span layoutId="doc-pill" className="absolute inset-0 rounded-full bg-ink" transition={springs.quick} aria-hidden /> : null}
+                          <span className="relative">{t.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </LayoutGroup>
               ) : null}
               <p className="ml-auto text-[13px] text-ink-3">
-                {tab?.editable ? "글자를 드래그해서 고르면 댓글을 달 수 있어요." : "읽기 전용 · 글자를 골라 댓글을 남길 수 있어요."}
+                {tab?.editable ? "글자를 드래그해서 고르면 댓글을 달 수 있어요." : "읽기 전용. 글자를 골라 댓글을 남길 수 있어요."}
               </p>
             </div>
             {tab ? (
