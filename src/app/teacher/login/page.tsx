@@ -29,7 +29,7 @@ export default function TeacherLogin() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-4 py-10">
-      <div className="w-full max-w-sm rounded-xl border border-line bg-surface p-6 shadow-card sm:p-7">
+      <div className="w-full max-w-sm rounded-[var(--radius-panel)] border border-line bg-surface p-7 shadow-card sm:p-8">
         <Link href="/" className="text-sm font-semibold text-accent">
           엮어 쓰기
         </Link>

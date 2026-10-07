@@ -212,8 +212,8 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
                   aria-pressed={on}
                   onClick={() => patch({ openStages: on ? c.openStages.filter((x) => x !== s.key) : [...c.openStages, s.key] })}
                   className={clsx(
-                    "rounded-lg border px-3 py-1.5 text-sm transition-colors",
-                    on ? "border-ink bg-ink font-semibold text-paper" : "border-line-strong bg-surface text-ink-2 hover:bg-paper-2",
+                    "pressable rounded-full border px-3.5 py-1.5 text-sm",
+                    on ? "border-primary bg-primary font-semibold text-on-primary" : "border-line bg-surface text-ink-2 hover:bg-paper-2",
                   )}
                 >
                   {i + 1}. {s.label}

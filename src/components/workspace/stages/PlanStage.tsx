@@ -65,7 +65,7 @@ export function PlanStage() {
                   aria-pressed={plan?.format === f}
                   className={
                     "rounded-full border px-3 py-1 text-sm transition-colors disabled:cursor-not-allowed " +
-                    (plan?.format === f ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong bg-surface text-ink-2 hover:bg-paper-2")
+                    (plan?.format === f ? "border-primary bg-primary font-semibold text-on-primary" : "border-line-strong bg-surface text-ink-2 hover:bg-paper-2")
                   }
                 >
                   {f}

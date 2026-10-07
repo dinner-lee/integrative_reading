@@ -121,7 +121,7 @@ export function WriteStage() {
               </Button>
               {tabs.length > 1 ? (
                 <LayoutGroup id={`docs-${groupId}`}>
-                  <div className="flex flex-wrap gap-1" role="tablist">
+                  <div className="flex flex-wrap gap-0.5 rounded-full bg-paper-2 p-0.5" role="tablist">
                     {tabs.map((t) => {
                       const on = t.key === tab?.key;
                       return (
@@ -133,9 +133,9 @@ export function WriteStage() {
                             setActive(t.key);
                             track("write.switch_doc", { field: t.field }, { stage: "write" });
                           }}
-                          className={clsx("pressable relative rounded-full px-3 py-1 text-sm", on ? "font-semibold text-paper" : "bg-paper-2 text-ink-2 hover:bg-paper-3")}
+                          className={clsx("pressable relative rounded-full px-3 py-1 text-sm", on ? "font-semibold text-ink" : "text-ink-2 hover:text-ink")}
                         >
-                          {on ? <motion.span layoutId="doc-pill" className="absolute inset-0 rounded-full bg-ink" transition={springs.quick} aria-hidden /> : null}
+                          {on ? <motion.span layoutId="doc-pill" className="absolute inset-0 rounded-full bg-surface shadow-sm" transition={springs.quick} aria-hidden /> : null}
                           <span className="relative">{t.label}</span>
                         </button>
                       );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useUpdateMyPresence } from "@liveblocks/react/suspense";
-import { Lock } from "lucide-react";
+import { BookOpen, Boxes, ChartScatter, ListTree, Lock, PenLine, Sparkles, Target } from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { track } from "@/lib/client/logger";
@@ -19,9 +19,19 @@ import { PlanStage } from "./stages/PlanStage";
 import { ReflectStage } from "./stages/ReflectStage";
 import { WriteStage } from "./stages/WriteStage";
 
+const ICONS: Record<StageKey, React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>> = {
+  plan: Target,
+  collect: BookOpen,
+  analyze: ChartScatter,
+  generate: Boxes,
+  organize: ListTree,
+  write: PenLine,
+  reflect: Sparkles,
+};
+
 /**
- * 단계 탭 + 단계 화면. 학생/둘러보기/교사 화면이 함께 쓴다.
- * 상단 크롬은 반투명 재질로 떠 있고 내용이 그 아래로 스크롤된다.
+ * 상단 크롬 + 단계 stepper + 단계 화면. 학생/둘러보기/교사 화면이 함께 쓴다.
+ * stepper는 둥근 알약 막대 안에 아이콘+라벨로 들어가고, 선택 표시가 스프링으로 미끄러진다.
  */
 export function StageShell({
   openStages,
@@ -63,43 +73,52 @@ export function StageShell({
 
   return (
     <div className="min-h-dvh">
-      <header className="material-thin scroll-edge sticky top-0 z-20" data-scrolled={scrolled}>
-        <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
-          <div className="min-w-0 flex-1">{header}</div>
-          <ThemeToggle className="max-sm:hidden" />
-          <PresenceBar />
+      <header className={clsx("sticky top-0 z-20 transition-[background-color] duration-200", scrolled && "material-thin")}>
+        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 sm:px-5 lg:flex-nowrap">
+          <div className="min-w-0 flex-1 lg:flex-none">{header}</div>
+
+          <nav aria-label="활동 단계" className="order-last w-full lg:order-none lg:w-auto lg:flex-1">
+            <LayoutGroup id={`stages-${groupId}`}>
+              <ol className="pill-bar mx-auto flex w-fit max-w-full items-center gap-0.5 overflow-x-auto p-1">
+                {stages.map((s) => {
+                  const open = openStages.includes(s.key);
+                  const active = s.key === stage;
+                  const Icon = ICONS[s.key];
+                  return (
+                    <li key={s.key} className="shrink-0">
+                      <button
+                        onClick={() => go(s.key)}
+                        disabled={!open}
+                        aria-current={active ? "step" : undefined}
+                        aria-label={`${s.label}${open ? "" : " (잠김)"}`}
+                        title={open ? s.desc : "선생님이 아직 열지 않은 단계예요"}
+                        className={clsx(
+                          "pressable relative flex min-w-[64px] flex-col items-center gap-0.5 rounded-full px-3 py-1.5 sm:min-w-[72px]",
+                          active ? "text-ink" : open ? "text-ink-2 hover:text-ink" : "cursor-not-allowed text-ink-3/60",
+                        )}
+                      >
+                        {active ? <motion.span layoutId="stage-pill" className="absolute inset-0 rounded-full bg-paper-3/80" transition={springs.quick} aria-hidden /> : null}
+                        <span className="relative flex h-5 items-center">
+                          {open ? <Icon size={18} strokeWidth={active ? 2.2 : 1.8} /> : <Lock size={16} strokeWidth={1.8} />}
+                        </span>
+                        <span className={clsx("relative text-[11px] leading-none", active ? "font-semibold" : "font-medium")}>{s.short}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ol>
+            </LayoutGroup>
+          </nav>
+
+          <div className="flex items-center gap-2">
+            <ThemeToggle className="max-sm:hidden" />
+            <div className="pill-bar flex h-9 items-center px-1.5">
+              <PresenceBar />
+            </div>
+          </div>
         </div>
-        <nav aria-label="활동 단계" className="px-3 pb-2 sm:px-5">
-          <LayoutGroup id={`stages-${groupId}`}>
-            <ol className="flex gap-1 overflow-x-auto">
-              {stages.map((s, i) => {
-                const open = openStages.includes(s.key);
-                const active = s.key === stage;
-                return (
-                  <li key={s.key} className="shrink-0">
-                    <button
-                      onClick={() => go(s.key)}
-                      disabled={!open}
-                      aria-current={active ? "step" : undefined}
-                      title={open ? s.desc : "선생님이 아직 열지 않은 단계예요"}
-                      className={clsx(
-                        "pressable relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm",
-                        active ? "font-semibold text-paper" : open ? "text-ink-2 hover:bg-paper-2" : "cursor-not-allowed text-ink-3/70",
-                      )}
-                    >
-                      {active ? <motion.span layoutId="stage-pill" className="absolute inset-0 rounded-lg bg-ink" transition={springs.quick} aria-hidden /> : null}
-                      <span className={clsx("relative text-xs tabular-nums", active ? "text-paper/70" : "text-ink-3")}>{i + 1}</span>
-                      <span className="relative">{s.label}</span>
-                      {!open ? <Lock size={12} className="relative" /> : null}
-                    </button>
-                  </li>
-                );
-              })}
-            </ol>
-          </LayoutGroup>
-        </nav>
       </header>
-      <main className="px-4 py-6 sm:px-6">
+      <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={stage}
@@ -108,7 +127,9 @@ export function StageShell({
             exit={{ opacity: 0, transition: { duration: 0.12 } }}
             transition={springs.quick}
           >
-            <p className="sr-only">{current?.desc}</p>
+            <p className="sr-only">
+              {current?.label}. {current?.desc}
+            </p>
             {stage === "plan" && <PlanStage />}
             {stage === "collect" && <CollectStage />}
             {stage === "analyze" && <AnalyzeStage onGoNext={openStages.includes("generate") ? () => go("generate") : undefined} />}
@@ -123,7 +144,7 @@ export function StageShell({
   );
 }
 
-/** 떠 있는 크롬 아래로 내용이 들어갔을 때만 가장자리 효과를 켠다 */
+/** 내용이 크롬 아래로 들어갔을 때만 재질을 켠다 */
 function useScrolled() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {

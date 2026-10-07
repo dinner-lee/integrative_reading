@@ -286,7 +286,7 @@ function TermTable({ result, open }: { result: RunResult; open: (id: string) => 
             onClick={() => setDocId(x.id)}
             className={clsx(
               "max-w-[16rem] truncate rounded-full border px-3 py-1 text-[13px]",
-              x.id === d.id ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong text-ink-2 hover:bg-paper-2",
+              x.id === d.id ? "border-primary bg-primary font-semibold text-on-primary" : "border-line-strong text-ink-2 hover:bg-paper-2",
             )}
           >
             {x.title}
@@ -443,7 +443,7 @@ function PreprocessResult({ result }: { result: RunResult }) {
             onClick={() => setId(x.id)}
             className={clsx(
               "max-w-[16rem] truncate rounded-full border px-3 py-1 text-[13px]",
-              x.id === p.id ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong text-ink-2 hover:bg-paper-2",
+              x.id === p.id ? "border-primary bg-primary font-semibold text-on-primary" : "border-line-strong text-ink-2 hover:bg-paper-2",
             )}
           >
             {x.title}

@@ -1,56 +1,75 @@
+import { Check, Users } from "lucide-react";
 import { clusterColor } from "@/lib/colors";
 
 /**
- * 첫 화면용 분석 결과 축소판. 진짜 화면과 같은 구성(묶음 카드 + 자료 지도)을
- * 고정된 보기 자료로 그린다. 표시용이며 상호작용은 없다.
+ * 첫 화면용 분석 결과 축소판. 자료 지도를 큰 둥근 카드로 보여 주고,
+ * 그 위에 떠 있는 알약 라벨과 모둠 논의 카드를 겹친다. 표시용이며 상호작용은 없다.
  */
-const SAMPLE = {
-  topic: "자전거 통학",
-  clusters: [
-    { name: "통학로 안전", terms: ["안전", "통학로", "횡단보도"], docs: ["자전거 도로 안전 수칙", "안전한 통학로 만들기"] },
-    { name: "건강과 운동", terms: ["자전거", "운동", "건강"], docs: ["자전거 통학과 건강", "청소년 운동 습관", "신상 자전거 할인"] },
-    { name: "환경", terms: ["탄소", "배출", "기후"], docs: ["자전거와 탄소 중립"] },
-  ],
-  points: [
-    { x: 0.22, y: 0.3, c: 0 }, { x: 0.3, y: 0.42, c: 0 },
-    { x: 0.66, y: 0.36, c: 1 }, { x: 0.74, y: 0.5, c: 1 }, { x: 0.6, y: 0.58, c: 1, ad: true },
-    { x: 0.5, y: 0.82, c: 2 },
-  ],
-};
+const POINTS = [
+  { x: 0.2, y: 0.3, c: 0, label: "자전거 도로 안전 수칙" },
+  { x: 0.3, y: 0.44, c: 0, label: "안전한 통학로 만들기" },
+  { x: 0.68, y: 0.3, c: 1, label: "자전거 통학과 건강" },
+  { x: 0.78, y: 0.46, c: 1, label: "청소년 운동 습관" },
+  { x: 0.6, y: 0.56, c: 1, label: "신상 자전거 할인", ad: true },
+  { x: 0.5, y: 0.84, c: 2, label: "자전거와 탄소 중립" },
+];
+const CLUSTERS = ["통학로 안전", "건강과 운동", "환경"];
 
 export function LandingPreview() {
   return (
-    <div className="enter-fade rounded-xl border border-line bg-surface p-4 shadow-card sm:p-5" aria-label="자료 분석하기 화면 보기">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-bold">
-          3단계 자료 분석하기 <span className="font-normal text-ink-3">보기: {SAMPLE.topic}</span>
-        </p>
-        <p className="text-xs text-ink-3">TF-IDF + k-평균, 묶음 3개</p>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-[1.1fr_1fr]">
-        <ul className="space-y-2">
-          {SAMPLE.clusters.map((c, i) => (
-            <li key={c.name} className="rounded-lg border border-line px-3 py-2" style={{ borderLeft: `4px solid ${clusterColor(i)}` }}>
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="text-sm font-semibold">{c.name}</span>
-                <span className="text-[11px] text-ink-3">자료 {c.docs.length}</span>
-              </div>
-              <p className="mt-0.5 text-xs text-ink-3">{c.terms.join(", ")}</p>
+    <div className="enter-fade relative" aria-label="자료 분석하기 화면 보기">
+      <figure className="relative m-0 aspect-[4/3.4] overflow-hidden rounded-[var(--radius-panel)] bg-paper-2 shadow-card ring-1 ring-line sm:aspect-[4/3]">
+        <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_80%_0%,color-mix(in_srgb,var(--accent)_10%,transparent),transparent_60%),radial-gradient(90%_70%_at_0%_100%,color-mix(in_srgb,#1b998b_10%,transparent),transparent_60%)]" />
+        <svg viewBox="0 0 400 340" className="absolute inset-0 h-full w-full" role="img" aria-label="자료 6개를 두 축으로 펼친 지도">
+          <line x1="200" x2="200" y1="24" y2="316" stroke="var(--line-strong)" strokeDasharray="3 5" />
+          <line y1="170" y2="170" x1="24" x2="376" stroke="var(--line-strong)" strokeDasharray="3 5" />
+          {POINTS.map((p, i) => (
+            <g key={i}>
+              <circle cx={p.x * 400} cy={p.y * 340} r={p.ad ? 22 : 18} fill={clusterColor(p.c)} fillOpacity={0.12} />
+              <circle cx={p.x * 400} cy={p.y * 340} r={p.ad ? 10 : 8} fill={clusterColor(p.c)} stroke="var(--surface)" strokeWidth={2.5} />
+            </g>
+          ))}
+        </svg>
+
+        {/* 떠 있는 라벨 */}
+        <span className="pill-bar absolute left-4 top-4 px-3 py-1.5 text-[13px] font-medium text-ink">3단계 자료 분석하기</span>
+        <span className="pill-bar absolute right-4 top-4 px-3 py-1.5 text-[13px] font-medium text-ink">자전거 통학</span>
+        <span className="absolute bottom-4 left-4 flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-[13px] font-medium text-on-primary">
+          <span className="h-1.5 w-1.5 rounded-full bg-ok" /> 함께 묶는 중
+        </span>
+        <span className="pill-bar absolute bottom-4 right-4 flex items-center gap-3 px-3 py-1.5 text-[13px] text-ink">
+          <span className="flex items-center gap-1.5">
+            <Users size={14} /> 모둠 4명, 한 화면에서
+          </span>
+          <span className="flex items-center gap-1 text-ink-3">
+            <Check size={14} /> 저장됨
+          </span>
+        </span>
+
+        {/* 묶음 범례 */}
+        <ul className="absolute left-4 top-16 space-y-1.5">
+          {CLUSTERS.map((n, i) => (
+            <li key={n} className="flex items-center gap-2 text-[13px] font-medium text-ink">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ background: clusterColor(i) }} />
+              {n}
             </li>
           ))}
         </ul>
-        <figure className="relative m-0 overflow-hidden rounded-lg border border-line bg-surface-2">
-          <svg viewBox="0 0 320 240" className="h-full w-full" role="img" aria-label="자료 6개를 두 축으로 펼친 지도">
-            <line x1="160" x2="160" y1="12" y2="228" stroke="var(--line)" />
-            <line y1="120" y2="120" x1="12" x2="308" stroke="var(--line)" />
-            {SAMPLE.points.map((p, i) => (
-              <circle key={i} cx={p.x * 320} cy={p.y * 240} r={p.ad ? 9 : 7} fill={clusterColor(p.c)} fillOpacity={0.9} stroke="var(--surface)" strokeWidth={2} />
-            ))}
-          </svg>
-          <figcaption className="absolute bottom-2 left-2 right-2 rounded-lg bg-surface/90 px-2 py-1 text-[11px] leading-snug text-ink-2">
-            낱말이 비슷해 「건강과 운동」에 묶인 자전거 광고. 글의 목적에 맞을까요?
-          </figcaption>
-        </figure>
+      </figure>
+
+      {/* 모둠 논의 카드 (사진 위 댓글 카드처럼 겹침) */}
+      <div className="material-panel absolute -left-3 bottom-16 w-[min(300px,78%)] rounded-[var(--radius-card)] p-4 sm:-left-8 sm:bottom-20">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#d6336c] text-[11px] font-bold text-white">하늘</span>
+          <p className="text-sm">
+            <span className="font-semibold">김하늘</span> <span className="text-ink-3">방금</span>
+          </p>
+        </div>
+        <p className="mt-2.5 text-[15px] leading-snug">낱말은 비슷한데 광고 자료예요. 글의 목적엔 안 맞을 것 같아요.</p>
+        <div className="mt-3 flex items-center gap-1.5">
+          <span className="rounded-full bg-bad-soft px-2.5 py-1 text-xs font-semibold text-bad">제외</span>
+          <span className="rounded-full bg-paper-2 px-2.5 py-1 text-xs font-medium text-ink-2">신상 자전거 할인</span>
+        </div>
       </div>
     </div>
   );

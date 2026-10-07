@@ -475,7 +475,7 @@ function PreviewModal({ open, onClose, cond, materials }: { open: boolean; onClo
               onClick={() => setId(x.id)}
               className={clsx(
                 "max-w-[16rem] truncate rounded-full border px-3 py-1 text-[13px]",
-                x.id === current ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong text-ink-2 hover:bg-paper-2",
+                x.id === current ? "border-primary bg-primary font-semibold text-on-primary" : "border-line-strong text-ink-2 hover:bg-paper-2",
               )}
             >
               {x.title}

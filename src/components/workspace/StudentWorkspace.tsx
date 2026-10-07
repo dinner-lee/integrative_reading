@@ -80,29 +80,28 @@ export function StudentWorkspace() {
         <StageShell
           openStages={me.classroom.openStages}
           header={
-            <div className="flex items-center gap-3">
-              <div className="min-w-0">
-                <p className="truncate text-[13px] text-ink-3">{me.classroom.name}</p>
-                <p className="truncate text-sm font-bold">
-                  {me.group.name}, {me.student.name}
-                </p>
+            <div className="flex items-center gap-2">
+              <div className="pill-bar flex h-10 min-w-0 items-center gap-2 pl-1.5 pr-3.5">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-on-primary">{me.group.name.replace(/모둠$/, "")}</span>
+                <span className="truncate text-sm font-semibold">{me.group.name}</span>
+                <span className="truncate text-[13px] text-ink-3 max-sm:hidden">{me.classroom.name}</span>
               </div>
               <div className="ml-auto flex items-center gap-1">
                 {me.classroom.allowPeerView && others.length ? (
                   <details className="relative">
-                    <summary className="flex h-8 cursor-pointer list-none items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-ink-2 hover:bg-paper-2">
+                    <summary className="pressable flex h-9 cursor-pointer list-none items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-[13px] font-medium text-ink-2 hover:bg-paper-2">
                       <Eye size={15} /> <span className="max-sm:hidden">다른 모둠</span>
                     </summary>
-                    <div className="absolute right-0 z-30 mt-1 w-48 rounded-xl border border-line bg-surface p-1 shadow-lg">
+                    <div className="material-panel absolute right-0 z-30 mt-1.5 w-52 rounded-2xl p-1.5">
                       {others.map((g) => (
-                        <Link key={g.id} href={`/workspace/peek/${g.id}`} className="block rounded-lg px-3 py-2 text-sm hover:bg-surface-2">
+                        <Link key={g.id} href={`/workspace/peek/${g.id}`} className="block rounded-xl px-3 py-2 text-sm hover:bg-paper-2">
                           {g.name} <span className="text-xs text-ink-3">자료 {g.materials}</span>
                         </Link>
                       ))}
                     </div>
                   </details>
                 ) : null}
-                <Button size="sm" variant="ghost" onClick={() => logout(router)} aria-label="나가기">
+                <Button size="sm" variant="ghost" onClick={() => logout(router)} aria-label="나가기" className="h-9 w-9 px-0">
                   <LogOut size={15} />
                 </Button>
               </div>
