@@ -46,6 +46,8 @@ declare global {
       clusters: LiveList<LiveObject<ClusterData>>;
       decisions: LiveMap<string, LiveObject<DecisionData>>;
       outline: LiveList<LiveObject<SectionData>>;
+      /** 편집기 field별 글 제목 (예전 방에는 없을 수 있음) */
+      titles?: LiveMap<string, string>;
     };
     UserMeta: {
       id: string;

@@ -23,6 +23,7 @@
   --paper-3: oklch(90% 0.0015 253.83);
   --surface: oklch(100% 0.0008 253.83); /* surface */
   --surface-2: oklch(95.24% 0.0012 253.83); /* surface-secondary */
+  --panel: oklch(97.8% 0.001 253.83); /* 바탕(95.8)보다 밝고 입력란(100)보다 어두운 판 */
   --ink: oklch(21.03% 0.0015 253.83); /* foreground */
   --ink-2: oklch(40% 0.003 253.83);
   --ink-3: oklch(55.17% 0.003 253.83); /* muted */
@@ -64,6 +65,7 @@
     --paper-3: oklch(33% 0.0015 253.83);
     --surface: oklch(21.03% 0.003 253.83);
     --surface-2: oklch(25.7% 0.0023 253.83);
+    --panel: oklch(16.5% 0.002 253.83); /* 바탕(12)보다 밝고 입력란(27.4)보다 어두운 판 */
     --ink: oklch(99.11% 0.0015 253.83);
     --ink-2: oklch(82% 0.003 253.83);
     --ink-3: oklch(70.5% 0.003 253.83);
@@ -104,6 +106,7 @@
   --paper-3: oklch(33% 0.0015 253.83);
   --surface: oklch(21.03% 0.003 253.83);
   --surface-2: oklch(25.7% 0.0023 253.83);
+  --panel: oklch(16.5% 0.002 253.83); /* 바탕(12)보다 밝고 입력란(27.4)보다 어두운 판 */
   --ink: oklch(99.11% 0.0015 253.83);
   --ink-2: oklch(82% 0.003 253.83);
   --ink-3: oklch(70.5% 0.003 253.83);
@@ -153,6 +156,7 @@
   --color-paper-3: var(--paper-3);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-panel: var(--panel);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
@@ -363,6 +367,10 @@ h3 {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
+/* 글 제목 칸: 본문처럼 보이는 투명 입력란이라 테두리 대신 커서로만 포커스를 보여 준다 */
+.doc-title:focus-visible {
+  outline: none;
+}
 
 /* 첫 화면 미리보기 1회 진입 (모션 3) */
 @media (prefers-reduced-motion: no-preference) {
@@ -399,6 +407,11 @@ h3 {
   border-radius: var(--radius-card);
   background: var(--surface);
   box-shadow: var(--card-shadow);
+}
+/* 판: 모서리 둥근 사각형, 외곽선 없이 색 차이로만 구분 (계획하기 구역, 표현하기 참고 패널) */
+.panel {
+  border-radius: var(--radius-card);
+  background: var(--panel);
 }
 .card-sm {
   border-radius: 1rem;

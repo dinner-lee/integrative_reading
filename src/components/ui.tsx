@@ -303,9 +303,9 @@ export function Sections({ children, className }: { children: ReactNode; classNa
 }
 
 /** 섹션: h2 제목 + 설명, 그 아래 입력란들 */
-export function Section({ title, desc, actions, children, className }: { title: string; desc?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string }) {
+export function Section({ title, desc, actions, children, className, panel }: { title: string; desc?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string; panel?: boolean }) {
   return (
-    <section className={clsx("py-8 first:pt-0 last:pb-0", className)}>
+    <section className={clsx(panel ? "panel px-6 py-6 sm:px-8 sm:py-7" : "py-8 first:pt-0 last:pb-0", className)}>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold tracking-tight">{title}</h2>

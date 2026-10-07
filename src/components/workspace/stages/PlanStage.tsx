@@ -4,7 +4,7 @@ import { LiveObject } from "@liveblocks/client";
 import { useMutation, useStorage } from "@liveblocks/react/suspense";
 import { trackDebounced } from "@/lib/client/logger";
 import { colorFor } from "@/lib/rooms";
-import { Field, Input, Section, SectionTitle, Sections, Textarea, clsx } from "../../ui";
+import { Field, Input, Section, SectionTitle, Textarea, clsx } from "../../ui";
 import { userKey, useRoomCtx } from "../context";
 
 const FORMATS = ["설명문", "안내문", "기사문", "보고서", "카드뉴스", "기타"];
@@ -42,8 +42,8 @@ export function PlanStage() {
     <div className="mx-auto max-w-5xl">
       <SectionTitle title="계획하기" desc="무엇에 대해, 누구에게, 왜 쓰는지 정해요." />
 
-      <Sections>
-        <Section title="우리 모둠의 글" desc="화제, 형식, 목적, 독자를 함께 정해요.">
+      <div className="space-y-5">
+        <Section panel title="우리 모둠의 글" desc="화제, 형식, 목적, 독자를 함께 정해요.">
         <div className="grid gap-x-10 gap-y-6 md:grid-cols-2">
           <Field label="화제" hint="예: 자전거 통학">
             <Input value={plan?.topic ?? ""} onChange={(e) => setPlan("topic", e.target.value)} disabled={!canEdit} maxLength={80} />
@@ -81,7 +81,7 @@ export function PlanStage() {
         </Section>
 
         {isMember ? (
-          <Section title="나의 생각" desc="모둠원이 함께 봐요.">
+          <Section panel title="나의 생각" desc="모둠원이 함께 봐요.">
             <div className="grid gap-x-10 gap-y-6 md:grid-cols-2">
               <Field label="내가 생각하는 목적">
                 <Textarea rows={2} value={mine?.purpose ?? ""} onChange={(e) => setMine("purpose", e.target.value)} maxLength={400} />
@@ -98,7 +98,7 @@ export function PlanStage() {
           </Section>
         ) : null}
 
-        <Section title="모둠원의 생각">
+        <Section panel title="모둠원의 생각">
           <ul className="divide-y divide-line">
             {members
               .filter((m) => !(isMember && m.id === viewer.id))
@@ -143,7 +143,7 @@ export function PlanStage() {
             {members.filter((m) => !(isMember && m.id === viewer.id)).length === 0 ? <li className="py-2 text-sm text-ink-3">아직 다른 모둠원이 없어요.</li> : null}
           </ul>
         </Section>
-      </Sections>
+      </div>
     </div>
   );
 }

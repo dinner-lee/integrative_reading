@@ -10,6 +10,7 @@ import { project, springs } from "../../motion";
 import { Button, Spinner, clsx } from "../../ui";
 import { useRoomCtx } from "../context";
 import { useMaterials } from "../hooks";
+import { DocTitle } from "../write/DocTitle";
 import { DraftEditor } from "../write/DraftEditor";
 import { KoToolbar } from "../write/KoToolbar";
 import { RefSidebar } from "../write/RefSidebar";
@@ -73,7 +74,7 @@ export function WriteStage() {
             initial={false}
             animate={{ width: sidebar ? SIDEBAR_W : 0 }}
             transition={springs.default}
-            className="shrink-0 overflow-hidden bg-surface-2"
+            className="shrink-0 overflow-hidden bg-panel"
             aria-hidden={!sidebar}
           >
             <div className="sticky top-[84px] h-[calc(100dvh-100px)]" style={{ width: SIDEBAR_W }}>
@@ -114,6 +115,12 @@ export function WriteStage() {
         </AnimatePresence>
 
         <section className="min-w-0 flex-1">
+          {/* 제목: 도구 줄 위, 문서마다 따로 */}
+          {tab ? (
+            <div className="px-6 pb-1 pt-7 sm:px-10">
+              <DocTitle key={tab.field} field={tab.field} editable={tab.editable} />
+            </div>
+          ) : null}
           {/* 카드 머리: 왼쪽 글 도구(회색 원), 오른쪽 문서 전환·사이드바 */}
           <div className="sticky top-[76px] z-10 flex flex-wrap items-center gap-2 bg-surface/95 px-4 pb-2 pt-4 backdrop-blur sm:px-8">
             {!sidebar ? (

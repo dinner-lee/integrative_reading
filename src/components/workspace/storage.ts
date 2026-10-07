@@ -15,5 +15,6 @@ export function initialStorage(): Liveblocks["Storage"] {
     clusters: new LiveList([]),
     decisions: new LiveMap(),
     outline: new LiveList(defaultOutline()),
+    titles: new LiveMap(),
   };
 }

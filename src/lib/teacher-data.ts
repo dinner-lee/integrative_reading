@@ -10,6 +10,7 @@ export type BoardJson = {
   clusters?: { id: string; name: string; note: string; keywords: string[]; origin: string; materialIds: string[] }[];
   decisions?: Record<string, { status: string; reason: string; updatedBy: string; updatedAt: number }>;
   outline?: { id: string; title: string; role: string; point: string; materialIds: string[] }[];
+  titles?: Record<string, string>;
 };
 
 /** 모둠 방의 Liveblocks Storage를 JSON으로 읽는다. 방이 아직 없으면 빈 값. */
