@@ -253,7 +253,7 @@ export function AnalyzeStage() {
                 <select
                   value={run.id}
                   onChange={(e) => setSelected(e.target.value)}
-                  className="ml-auto h-9 rounded-full bg-paper-2 px-3 text-[13px] font-medium text-ink-2"
+                  className="select-pill ml-auto h-9 rounded-full bg-paper-2 pl-3.5 text-[13px] font-medium text-ink-2"
                   aria-label="볼 결과 고르기"
                 >
                   {runs.map((r, i) => (
@@ -574,7 +574,7 @@ function PreprocessPreview({ cond, materials }: { cond: Conditions; materials: M
       <h2 className="text-lg font-bold tracking-tight">전처리 미리보기</h2>
       <p className="mb-4 mt-0.5 text-sm text-ink-3">지금 조건으로 원문이 어떻게 분석용 낱말로 바뀌는지 봐요. 파란 낱말만 분석에 쓰여요.</p>
       {usable.length ? (
-        <select value={current ?? ""} onChange={(e) => setId(e.target.value)} className="mb-3 h-10 w-full rounded-full bg-paper-2 px-4 text-sm font-medium" aria-label="미리볼 자료">
+        <select value={current ?? ""} onChange={(e) => setId(e.target.value)} className="select-pill mb-3 h-10 w-full rounded-full bg-paper-2 pl-4 text-sm font-medium" aria-label="미리볼 자료">
           {usable.map((m) => (
             <option key={m.id} value={m.id}>
               {m.title}

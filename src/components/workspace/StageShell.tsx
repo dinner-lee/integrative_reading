@@ -114,15 +114,15 @@ export function StageShell({
                         title={open ? s.desc : "선생님이 아직 열지 않은 단계예요"}
                         className={clsx(
                           "pressable relative flex h-9 items-center gap-1.5 rounded-full pl-3 pr-4 text-[15px]",
-                          active ? "font-semibold text-ink" : open ? "font-medium text-ink-2 hover:text-ink" : "cursor-not-allowed font-medium text-ink-3/60",
+                          active ? "font-semibold text-ink" : open ? "font-medium text-ink-3 hover:text-ink-2" : "cursor-not-allowed font-medium text-ink-3/50",
                         )}
                       >
                         {active ? <motion.span layoutId="stage-pill" className="pill-thumb absolute inset-0 rounded-full" transition={springs.quick} aria-hidden /> : null}
                         {/* 글자 크기(1em)와 같은 먹색 원 안의 단계 번호 */}
                         <span
                           className={clsx(
-                            "relative flex h-[1em] w-[1em] shrink-0 items-center justify-center rounded-full text-[10px] font-bold leading-none tabular-nums",
-                            open ? "bg-ink text-surface" : "bg-ink-3/40 text-surface",
+                            "relative flex h-[1.3em] w-[1.3em] shrink-0 items-center justify-center rounded-full text-[11px] font-bold leading-none tabular-nums",
+                            active ? "bg-ink text-surface" : open ? "bg-ink/55 text-surface" : "bg-ink-3/35 text-surface",
                           )}
                           aria-hidden
                         >

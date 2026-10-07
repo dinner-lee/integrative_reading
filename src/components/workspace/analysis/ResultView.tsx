@@ -1,10 +1,7 @@
 "use client";
 
 import { Lightbulb } from "lucide-react";
-import { LayoutGroup, motion } from "motion/react";
-import { springs } from "../../motion";
 import { useMemo, useState } from "react";
-import { track } from "@/lib/client/logger";
 import { Notice, clsx, clusterColor } from "../../ui";
 import type { Material, Morpheme, RunResult } from "../types";
 
@@ -21,14 +18,18 @@ export function Think({ children }: { children: React.ReactNode }) {
 }
 
 /** 읽는 순서: 원문이 낱말로 → 낱말 점수 → 자료 사이 거리 → 묶음 → 지도 */
-const TABS = [
-  { key: "preprocess", label: "1 전처리 결과" },
-  { key: "terms", label: "2 낱말 점수" },
-  { key: "similarity", label: "3 자료 사이 거리" },
-  { key: "clusters", label: "4 묶음" },
-  { key: "map", label: "5 자료 지도" },
-] as const;
-type Tab = (typeof TABS)[number]["key"];
+/** 대시보드 한 칸: 채움 없는 회색 선 상자 + 소제목 */
+function Panel({ title, desc, className, children }: { title: string; desc?: string; className?: string; children: React.ReactNode }) {
+  return (
+    <section className={clsx("panel min-w-0 px-5 py-5 sm:px-6", className)} aria-labelledby={`rp-${title}`}>
+      <h2 id={`rp-${title}`} className="text-base font-bold tracking-tight">
+        {title}
+      </h2>
+      {desc ? <p className="mt-0.5 text-[13px] text-ink-3">{desc}</p> : null}
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
 
 export function ResultView({
   result,
@@ -43,8 +44,6 @@ export function ResultView({
   onAddStopword?: (w: string) => void;
   runId: string;
 }) {
-  const [tab, setTab] = useState<Tab>("clusters");
-  // 묶음을 먼저 보여 주되, 탭은 읽는 순서대로 놓는다
   const byId = useMemo(() => new Map(materials.map((m) => [m.id, m])), [materials]);
   const open = (id: string) => {
     const m = byId.get(id);
@@ -52,26 +51,7 @@ export function ResultView({
   };
 
   return (
-    <div>
-      <LayoutGroup id={`result-tabs-${runId}`}>
-        <div className="mb-4 flex gap-1 overflow-x-auto border-b border-line" role="tablist">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              role="tab"
-              aria-selected={tab === t.key}
-              onClick={() => {
-                setTab(t.key);
-                track("analysis.tab", { tab: t.key, runId }, { stage: "analyze" });
-              }}
-              className={clsx("pressable relative -mb-px shrink-0 px-3 py-2 text-sm font-medium", tab === t.key ? "text-accent" : "text-ink-2 hover:text-ink")}
-            >
-              {t.label}
-              {tab === t.key ? <motion.span layoutId="result-underline" className="absolute inset-x-0 bottom-0 h-0.5 bg-accent" transition={springs.quick} aria-hidden /> : null}
-            </button>
-          ))}
-        </div>
-      </LayoutGroup>
+    <div data-run={runId}>
       {result.warnings.length ? (
         <div className="mb-4 space-y-2">
           {result.warnings.map((w, i) => (
@@ -81,11 +61,24 @@ export function ResultView({
           ))}
         </div>
       ) : null}
-      {tab === "clusters" && <Clusters result={result} open={open} onAddStopword={onAddStopword} />}
-      {tab === "map" && <MapView result={result} open={open} />}
-      {tab === "terms" && <TermTable result={result} open={open} />}
-      {tab === "similarity" && <Similarity result={result} />}
-      {tab === "preprocess" && <PreprocessResult result={result} />}
+      {/* 탭 대신 대시보드: 읽는 순서대로 다섯 칸, 넓은 화면에선 두 열 */}
+      <div className="grid gap-5 xl:grid-cols-2">
+        <Panel title="1 전처리 결과" desc="원문이 분석용 낱말로 어떻게 바뀌었는지" className="xl:col-span-2">
+          <PreprocessResult result={result} />
+        </Panel>
+        <Panel title="2 낱말 점수" desc="자료마다 어떤 낱말이 중요하게 계산됐는지">
+          <TermTable result={result} open={open} />
+        </Panel>
+        <Panel title="3 자료 사이 거리" desc="낱말 점수가 비슷한 자료일수록 가까워요">
+          <Similarity result={result} />
+        </Panel>
+        <Panel title="4 묶음" desc="함께 묶인 자료와 대표 낱말" className="xl:col-span-2">
+          <Clusters result={result} open={open} onAddStopword={onAddStopword} />
+        </Panel>
+        <Panel title="5 자료 지도" desc="자료를 2차원에 펼쳐 묶음을 한눈에" className="xl:col-span-2">
+          <MapView result={result} open={open} />
+        </Panel>
+      </div>
     </div>
   );
 }
