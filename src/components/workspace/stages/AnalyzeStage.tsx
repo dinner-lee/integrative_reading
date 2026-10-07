@@ -2,19 +2,20 @@
 
 import { LiveList, LiveObject } from "@liveblocks/client";
 import { useMutation, useStorage, useUpdateMyPresence } from "@liveblocks/react/suspense";
-import { ArrowRight, Eye, GitCompare, Play } from "lucide-react";
+import { ArrowLeft, ArrowRight, GitCompare, Play } from "lucide-react";
 import { nanoid } from "nanoid";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/client/api";
 import { track } from "@/lib/client/logger";
 import { METHODS } from "@/lib/stages";
-import { Badge, Button, Card, Empty, Modal, Notice, SectionTitle, Spinner, Textarea, clsx, clusterColor } from "../../ui";
 import { useDialog } from "../../dialogs";
-import { ConditionsPanel, POS_OPTIONS, type Conditions } from "../analysis/Conditions";
+import { Badge, Button, Card, Empty, Notice, Section, SectionTitle, Sections, Segmented, Spinner, Textarea, clsx, clusterColor } from "../../ui";
+import { ClusterPanel, POS_OPTIONS, PreprocessPanel, type Conditions } from "../analysis/Conditions";
 import { MorphemeStrip, PreprocessStats, RemovedLists, ResultView } from "../analysis/ResultView";
 import { useRoomCtx } from "../context";
 import { updateRunCache, useMaterials, useRun, useRuns } from "../hooks";
 import { MaterialDetail } from "../MaterialDetail";
+import { GenerateStage } from "./GenerateStage";
 import type { Material, Morpheme, PreprocessStats as Stats, Removed, RunFull, RunSummary } from "../types";
 
 const methodShort = (m: string) => METHODS.find((x) => x.key === m)?.short ?? m;
@@ -34,7 +35,17 @@ export function describeParams(r: Pick<RunSummary, "method" | "params" | "materi
     .join(", ");
 }
 
-export function AnalyzeStage({ onGoNext }: { onGoNext?: () => void }) {
+/** 군집화 순서: 자료·전처리 → 묶기 → 결과 → 비교·채택 */
+const STEPS = [
+  { key: "prep", label: "1 자료·전처리" },
+  { key: "cluster", label: "2 묶기" },
+  { key: "result", label: "3 결과" },
+  { key: "compare", label: "4 비교·채택" },
+  { key: "name", label: "5 이름·선별" },
+] as const;
+type StepKey = (typeof STEPS)[number]["key"];
+
+export function AnalyzeStage() {
   const { groupId, canEdit, viewer, me } = useRoomCtx();
   const { materials } = useMaterials(groupId);
   const { runs, notify: notifyRuns } = useRuns(groupId);
@@ -49,7 +60,7 @@ export function AnalyzeStage({ onGoNext }: { onGoNext?: () => void }) {
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewing, setViewing] = useState<Material | null>(null);
-  const [preview, setPreview] = useState(false);
+  const [stepChosen, setStep] = useState<StepKey | null>(null);
   const { confirm } = useDialog();
   const seenRef = useRef(new Set<string>());
 
@@ -83,15 +94,23 @@ export function AnalyzeStage({ onGoNext }: { onGoNext?: () => void }) {
     materials.forEach((m) => seenRef.current.add(m.id));
   }, [materials, defaults]);
 
-  // 고른 결과가 없으면 가장 최근 결과를 보여 준다
   const activeId = selected ?? runs?.[0]?.id ?? null;
+  const hasRuns = !!runs?.length;
+  // 처음엔 전처리부터, 이미 분석한 적이 있으면 결과부터
+  const step: StepKey = stepChosen ?? (hasRuns ? "result" : canEdit ? "prep" : "result");
 
   useEffect(() => {
-    updatePresence({ focus: activeId });
-  }, [activeId, updatePresence]);
+    updatePresence({ focus: `${step}:${activeId ?? ""}` });
+  }, [activeId, step, updatePresence]);
 
   const { run } = useRun(activeId);
   const { run: other } = useRun(compareWith);
+
+  function go(next: StepKey) {
+    setStep(next);
+    track("analysis.step", { step: next }, { stage: "analyze" });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   async function runAnalysis() {
     if (!cond) return;
@@ -103,6 +122,7 @@ export function AnalyzeStage({ onGoNext }: { onGoNext?: () => void }) {
       setSelected(r.run.id);
       setCompareWith(null);
       notifyRuns();
+      go("result");
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -130,14 +150,7 @@ export function AnalyzeStage({ onGoNext }: { onGoNext?: () => void }) {
       const leftOut = allMaterialIds.filter((id) => !inRun.has(id));
       if (leftOut.length) {
         clusters.push(
-          new LiveObject({
-            id: nanoid(8),
-            name: "분석에 넣지 않은 자료",
-            note: "",
-            keywords: [],
-            origin: "human" as const,
-            materialIds: new LiveList(leftOut),
-          }),
+          new LiveObject({ id: nanoid(8), name: "분석에 넣지 않은 자료", note: "", keywords: [], origin: "human" as const, materialIds: new LiveList(leftOut) }),
         );
       }
       storage.get("board").update({ runId: r.id, method: r.method, adoptedAt: Date.now(), adoptedBy: self.info.name });
@@ -158,7 +171,7 @@ export function AnalyzeStage({ onGoNext }: { onGoNext?: () => void }) {
     }
     adopt(run, materials.map((m) => m.id));
     track("analysis.adopt", { runId: run.id, method: run.method, replaced: board?.runId ?? null }, { stage: "analyze" });
-    onGoNext?.();
+    go("name");
   }
 
   function addStopword(w: string) {
@@ -184,102 +197,206 @@ export function AnalyzeStage({ onGoNext }: { onGoNext?: () => void }) {
     );
   }
 
+  const stepOptions = STEPS.filter((s) => canEdit || s.key === "result" || s.key === "compare" || s.key === "name").map((s) => ({ value: s.key, label: s.label }));
+  const canStep = (k: StepKey) => (k === "result" || k === "compare" ? hasRuns : k === "name" ? true : canEdit);
+
   return (
-    <div>
+    <div className="mx-auto max-w-6xl">
       <SectionTitle
         title="자료 분석하기"
-        desc="조건을 바꿔 가며 자료를 묶어 보고 결과를 비교해요."
+        desc="자료를 낱말로 바꾸고, 묶고, 결과를 읽고 비교한 뒤, 묶음에 이름을 붙이고 자료를 골라요."
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Segmented value={step} onChange={(v) => canStep(v) && go(v)} options={stepOptions} />
+          </div>
+        }
       />
       {error ? (
-        <Notice tone="bad" className="mb-4">
+        <Notice tone="bad" className="mb-5">
           {error}
         </Notice>
       ) : null}
-      <div className="grid gap-5 xl:grid-cols-[340px_1fr]">
-        <aside className="space-y-4">
-          {canEdit && cond ? (
-            <div className="pr-1">
-              <ConditionsPanel
-                value={cond}
-                onChange={setCond}
-                methods={defaults.methods}
-                materials={materials}
-                defaultStopwords={defaults.stopwords}
-                disabled={running}
+
+      {step === "prep" && cond ? (
+        <>
+          <div className="grid gap-10 xl:grid-cols-[1fr_380px]">
+            <PreprocessPanel value={cond} onChange={setCond} materials={materials} defaultStopwords={defaults.stopwords} disabled={running} />
+            <PreprocessPreview cond={cond} materials={materials} />
+          </div>
+          <StepNav next={{ label: "다음: 묶기", onClick: () => go("cluster") }} />
+        </>
+      ) : null}
+
+      {step === "cluster" && cond ? (
+        <>
+          <ClusterPanel value={cond} onChange={setCond} methods={defaults.methods} disabled={running} />
+          <StepNav
+            prev={{ label: "자료·전처리", onClick: () => go("prep") }}
+            next={{ label: running ? "분석하는 중…" : "분석하기", onClick: runAnalysis, primary: true, loading: running, disabled: cond.materialIds.length < 2, icon: <Play size={15} /> }}
+            note={`자료 ${cond.materialIds.length}개, ${POS_OPTIONS.find((o) => o.value === cond.preprocess.pos)?.label}, 불용어 ${cond.preprocess.stopwords.length}개로 묶어요.`}
+          />
+        </>
+      ) : null}
+
+      {step === "result" ? (
+        !hasRuns ? (
+          <Empty title="아직 분석한 적이 없어요">{canEdit ? "1 자료·전처리와 2 묶기를 마치면 여기서 결과를 볼 수 있어요." : "모둠이 아직 분석하지 않았어요."}</Empty>
+        ) : !run ? (
+          <div className="flex items-center gap-2 py-10 text-sm text-ink-3">
+            <Spinner /> 결과를 불러오는 중…
+          </div>
+        ) : (
+          <>
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+              <h2 className="text-lg font-bold tracking-tight">{METHODS.find((m) => m.key === run.method)?.label}</h2>
+              {board?.runId === run.id ? <Badge tone="ok">이름 붙이기에 쓰는 결과</Badge> : null}
+              <span className="text-[13px] text-ink-3">
+                {describeParams(run)}. {run.createdBy?.name ?? "이름 없음"}, {new Date(run.createdAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}
+              </span>
+              {runs && runs.length > 1 ? (
+                <select
+                  value={run.id}
+                  onChange={(e) => setSelected(e.target.value)}
+                  className="ml-auto h-9 rounded-full bg-paper-2 px-3 text-[13px] font-medium text-ink-2"
+                  aria-label="볼 결과 고르기"
+                >
+                  {runs.map((r, i) => (
+                    <option key={r.id} value={r.id}>
+                      #{runs.length - i} {describeParams(r)}
+                    </option>
+                  ))}
+                </select>
+              ) : null}
+            </div>
+            <Metrics run={run} />
+            <div className="mt-6">
+              <ResultView key={run.id} runId={run.id} result={run.result} materials={materials} onOpenMaterial={setViewing} onAddStopword={canEdit ? addStopword : undefined} />
+            </div>
+            <StepNav
+              prev={canEdit ? { label: "조건 바꿔 다시 묶기", onClick: () => go("cluster") } : undefined}
+              next={{ label: "다음: 비교·채택", onClick: () => go("compare") }}
+            />
+          </>
+        )
+      ) : null}
+
+      {step === "compare" ? (
+        !hasRuns || !run ? (
+          <Empty title="비교할 결과가 없어요">먼저 분석을 한 번 해 보세요.</Empty>
+        ) : (
+          <>
+            <div className="grid gap-10 xl:grid-cols-[380px_1fr]">
+              <RunHistory
+                runs={runs!}
+                selected={run.id}
+                compareWith={compareWith}
+                adoptedId={board?.runId ?? null}
+                onSelect={(id) => {
+                  setSelected(id);
+                  if (compareWith === id) setCompareWith(null);
+                  track("analysis.select_run", { runId: id }, { stage: "analyze" });
+                }}
+                onCompare={(id) => {
+                  setCompareWith(id === compareWith ? null : id);
+                  if (id !== compareWith) track("analysis.compare", { a: run.id, b: id }, { stage: "analyze" });
+                }}
               />
-              <div className="mt-5 flex gap-2">
-                <Button type="button" onClick={() => setPreview(true)} disabled={!cond.materialIds.length}>
-                  <Eye size={15} /> 전처리 미리보기
-                </Button>
-                <Button type="button" variant="primary" className="flex-1" onClick={runAnalysis} loading={running} disabled={cond.materialIds.length < 2}>
-                  {running ? null : <Play size={15} />} {running ? "분석하는 중…" : "분석하기"}
-                </Button>
+              <div className="min-w-0">
+                <Sections>
+                  <Section title="두 결과 비교" desc={other ? "묶음 번호는 분석할 때마다 새로 붙어요. 어떤 자료끼리 함께 묶였는지를 비교하세요." : "왼쪽 기록에서 비교 단추를 누르면 지금 결과와 나란히 볼 수 있어요."}>
+                    {other ? <Compare a={run} b={other} materials={materials} /> : <Empty title="비교할 결과를 골라 주세요" />}
+                  </Section>
+                  <Section title="해석 메모" desc="조건을 바꾸니 무엇이 달라졌나요? 결과가 글의 목적과 맞나요?">
+                    <RunNote key={run.id} run={run} canEdit={canEdit} />
+                  </Section>
+                  <Section title="이 결과로 이름 붙이기" desc="고른 결과의 묶음으로 5 이름·선별을 시작해요. 분석에 넣지 않은 자료는 따로 모여요.">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="text-sm">
+                        <b>{METHODS.find((m) => m.key === run.method)?.short}</b>, {describeParams(run).split(", ").slice(1).join(", ")}
+                      </span>
+                      {canEdit && viewer.role === "student" ? (
+                        <Button variant="primary" onClick={onAdopt} disabled={board?.runId === run.id} className="ml-auto">
+                          이 결과로 이름 붙이기 <ArrowRight size={15} />
+                        </Button>
+                      ) : board?.runId === run.id ? (
+                        <Badge tone="ok">채택된 결과</Badge>
+                      ) : null}
+                    </div>
+                  </Section>
+                </Sections>
               </div>
             </div>
-          ) : null}
-          <RunHistory
-            runs={runs}
-            selected={activeId}
-            compareWith={compareWith}
-            adoptedId={board?.runId ?? null}
-            onSelect={(id) => {
-              setSelected(id);
-              if (compareWith === id) setCompareWith(null);
-              track("analysis.select_run", { runId: id }, { stage: "analyze" });
-            }}
-            onCompare={(id) => {
-              setCompareWith(id === compareWith ? null : id);
-              if (id !== compareWith) track("analysis.compare", { a: activeId, b: id }, { stage: "analyze" });
-            }}
-          />
-        </aside>
+            <StepNav prev={{ label: "결과", onClick: () => go("result") }} next={{ label: "다음: 이름·선별", onClick: () => go("name") }} />
+          </>
+        )
+      ) : null}
 
-        <section className="min-w-0">
-          {!runs?.length ? (
-            <Empty title="아직 분석한 적이 없어요">왼쪽에서 조건을 고르고 ‘분석하기’를 눌러 보세요.</Empty>
-          ) : !run ? (
-            <div className="flex items-center gap-2 py-10 text-sm text-ink-3">
-              <Spinner /> 결과를 불러오는 중…
-            </div>
-          ) : (
-            <div className="space-y-5">
-              <Card className="p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-bold">{METHODS.find((m) => m.key === run.method)?.label}</h3>
-                      {board?.runId === run.id ? <Badge tone="ok">내용 생성하기에 쓰는 결과</Badge> : null}
-                    </div>
-                    <p className="mt-0.5 text-[13px] text-ink-3">
-                      {describeParams(run)}
-                      <span className="ml-2">
-                        {run.createdBy?.name ?? "이름 없음"}, {new Date(run.createdAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}
-                      </span>
-                    </p>
-                  </div>
-                  {canEdit && viewer.role === "student" ? (
-                    <Button variant="primary" onClick={onAdopt} disabled={board?.runId === run.id}>
-                      이 결과로 내용 생성하기 <ArrowRight size={15} />
-                    </Button>
-                  ) : null}
-                </div>
-                <RunNote key={run.id} run={run} canEdit={canEdit} />
-              </Card>
-              {other ? <Compare a={run} b={other} materials={materials} /> : null}
-              <ResultView
-                key={run.id}
-                runId={run.id}
-                result={run.result}
-                materials={materials}
-                onOpenMaterial={setViewing}
-                onAddStopword={canEdit ? addStopword : undefined}
-              />
-            </div>
-          )}
-        </section>
-      </div>
+      {step === "name" ? (
+        <>
+          <GenerateStage onGoAnalyze={canEdit ? () => go("cluster") : undefined} />
+          <StepNav prev={{ label: "비교·채택", onClick: () => go("compare") }} />
+        </>
+      ) : null}
+
       <MaterialDetail material={viewing} onClose={() => setViewing(null)} stage="analyze" />
-      {cond ? <PreviewModal open={preview} onClose={() => setPreview(false)} cond={cond} materials={materials} /> : null}
+    </div>
+  );
+}
+
+/** 단계 아래 진행 단추 */
+function StepNav({
+  prev,
+  next,
+  note,
+}: {
+  prev?: { label: string; onClick: () => void };
+  next?: { label: string; onClick: () => void; primary?: boolean; loading?: boolean; disabled?: boolean; icon?: React.ReactNode };
+  note?: string;
+}) {
+  return (
+    <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-line pt-6">
+      {prev ? (
+        <Button variant="ghost" onClick={prev.onClick}>
+          <ArrowLeft size={15} /> {prev.label}
+        </Button>
+      ) : null}
+      {note ? <span className="text-sm text-ink-3">{note}</span> : null}
+      {next ? (
+        <Button variant={next.primary ? "primary" : "secondary"} onClick={next.onClick} loading={next.loading} disabled={next.disabled} className="ml-auto">
+          {next.loading ? null : next.icon}
+          {next.label}
+          {next.primary ? null : <ArrowRight size={15} />}
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
+/** 결과 요약 지표 타일 */
+function Metrics({ run }: { run: RunFull }) {
+  const r = run.result;
+  const m = r.metrics;
+  const tiles: { label: string; value: string; sub?: string; tone?: "ok" | "warn" | "neutral" }[] = [
+    { label: "분석한 자료", value: `${r.docs.length}개`, sub: `${r.preprocessing.reduce((a, p) => a + p.stats.kept, 0).toLocaleString()} 낱말` },
+    { label: "남은 낱말 종류", value: `${r.vocabSize}개`, sub: "불용어·품사로 거른 뒤" },
+    { label: r.method === "lda" ? "주제 수" : "묶음 수", value: `${r.k}개`, sub: run.params.mining.k ? "직접 정함" : "자동으로 고름" },
+    m.silhouette !== undefined
+      ? { label: "실루엣 점수", value: m.silhouette.toFixed(3), sub: m.silhouette > 0.25 ? "묶음이 비교적 또렷해요" : "묶음 경계가 흐려요", tone: m.silhouette > 0.25 ? "ok" : "warn" }
+      : m.perplexity !== undefined
+        ? { label: "혼란도", value: String(m.perplexity), sub: "작을수록 자료를 잘 설명" }
+        : { label: "자료가 적어요", value: "주의", sub: "4개 이상이면 안정적", tone: "warn" },
+  ];
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {tiles.map((t) => (
+        <Card key={t.label} className="px-5 py-4">
+          <p className="text-sm text-ink-3">{t.label}</p>
+          <div className="mt-2 flex items-end justify-between gap-2">
+            <p className="text-2xl font-semibold tabular-nums tracking-tight">{t.value}</p>
+            {t.sub ? <Badge tone={t.tone ?? "neutral"}>{t.sub}</Badge> : null}
+          </div>
+        </Card>
+      ))}
     </div>
   );
 }
@@ -292,35 +409,32 @@ function RunHistory({
   onSelect,
   onCompare,
 }: {
-  runs: RunSummary[] | null;
+  runs: RunSummary[];
   selected: string | null;
   compareWith: string | null;
   adoptedId: string | null;
   onSelect: (id: string) => void;
   onCompare: (id: string) => void;
 }) {
-  if (!runs?.length) return null;
   return (
-    <Card className="p-4">
-      <h3 className="mb-1 font-bold">분석 기록</h3>
-      <p className="mb-3 text-[13px] text-ink-3">조건을 바꿔 가며 한 분석이 모두 남아요. 비교 단추로 두 결과를 나란히 볼 수 있어요.</p>
-      <ol className="max-h-[420px] space-y-1.5 overflow-y-auto">
-        {runs.map((r, i) => (
-          <li key={r.id}>
-            <div
-              className={clsx(
-                "rounded-lg border px-3 py-2",
-                r.id === selected ? "border-accent bg-accent-soft/50" : r.id === compareWith ? "border-warn bg-warn-soft/50" : "border-line",
-              )}
-            >
+    <div>
+      <h2 className="text-lg font-bold tracking-tight">분석 기록 {runs.length}</h2>
+      <p className="mb-4 mt-0.5 text-sm text-ink-3">조건을 바꿔 가며 한 분석이 모두 남아요. 하나를 고르고 다른 하나와 비교해 보세요.</p>
+      <ol className="space-y-2">
+        {runs.map((r, i) => {
+          const isSel = r.id === selected;
+          const isCmp = r.id === compareWith;
+          return (
+            <li key={r.id} className={clsx("rounded-2xl p-3 transition-[box-shadow,background-color]", isSel ? "card-sm ring-2 ring-accent" : isCmp ? "card-sm ring-2 ring-warn" : "bg-paper-2/70")}>
               <div className="flex items-start justify-between gap-2">
                 <button className="min-w-0 flex-1 text-left" onClick={() => onSelect(r.id)}>
                   <span className="flex items-center gap-1.5 text-sm font-semibold">
                     #{runs.length - i} {methodShort(r.method)}
                     {r.id === adoptedId ? <Badge tone="ok">채택</Badge> : null}
+                    {isSel ? <Badge tone="accent">A</Badge> : isCmp ? <Badge tone="warn">B</Badge> : null}
                   </span>
                   <span className="block text-xs text-ink-3">{describeParams(r)}</span>
-                  <span className="mt-1 flex flex-wrap gap-1">
+                  <span className="mt-1.5 flex flex-wrap gap-1.5">
                     {r.summary.clusters.map((c, j) => (
                       <span key={j} className="inline-flex items-center gap-1 text-[11px] text-ink-2">
                         <span className="h-2 w-2 rounded-full" style={{ background: clusterColor(j) }} />
@@ -329,23 +443,24 @@ function RunHistory({
                     ))}
                   </span>
                 </button>
-                {r.id !== selected ? (
+                {!isSel ? (
                   <button
                     onClick={() => onCompare(r.id)}
                     title="지금 결과와 비교"
-                    aria-pressed={r.id === compareWith}
-                    className={clsx("rounded-lg p-1 hover:bg-paper-2", r.id === compareWith ? "text-warn" : "text-ink-3")}
+                    aria-label="지금 결과와 비교"
+                    aria-pressed={isCmp}
+                    className={clsx("pressable flex h-8 w-8 shrink-0 items-center justify-center rounded-full", isCmp ? "bg-warn text-on-accent" : "bg-paper-2 text-ink-3 hover:bg-paper-3")}
                   >
                     <GitCompare size={15} />
                   </button>
                 ) : null}
               </div>
-              {r.note ? <p className="mt-1 line-clamp-2 text-xs text-ink-2">“{r.note}”</p> : null}
-            </div>
-          </li>
-        ))}
+              {r.note ? <p className="mt-1.5 line-clamp-2 text-xs text-ink-2">“{r.note}”</p> : null}
+            </li>
+          );
+        })}
       </ol>
-    </Card>
+    </div>
   );
 }
 
@@ -363,20 +478,11 @@ function RunNote({ run, canEdit }: { run: RunFull; canEdit: boolean }) {
       setSaved("idle");
     }
   }
-  if (!canEdit && !run.note) return null;
+  if (!canEdit) return <p className="text-sm text-ink-2">{run.note || "아직 적지 않았어요."}</p>;
   return (
-    <div className="mt-3">
-      <label className="mb-1 block text-[13px] font-semibold text-ink-2">
-        해석 메모 <span className="font-normal text-ink-3">(조건을 바꾸니 무엇이 달라졌나요? 결과가 글의 목적과 맞나요?)</span>
-      </label>
-      {canEdit ? (
-        <>
-          <Textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} onBlur={save} maxLength={4000} className="text-sm" />
-          <p className="h-4 text-right text-xs text-ink-3">{saved === "saving" ? "저장하는 중…" : saved === "saved" ? "저장했어요" : ""}</p>
-        </>
-      ) : (
-        <p className="text-sm text-ink-2">{run.note}</p>
-      )}
+    <div>
+      <Textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} onBlur={save} maxLength={4000} placeholder="예: 불용어에 '자전거'를 넣었더니 광고 자료가 건강 묶음에서 빠졌다." />
+      <p className="mt-1.5 h-4 text-right text-xs text-ink-3">{saved === "saving" ? "저장하는 중…" : saved === "saved" ? "저장했어요" : ""}</p>
     </div>
   );
 }
@@ -394,7 +500,6 @@ function Compare({ a, b, materials }: { a: RunFull; b: RunFull; materials: Mater
       </span>
     );
   };
-  // 자료 쌍이 같은 묶음에 있었는지 비교해, 짝이 달라진 자료를 표시
   const ids = materials.map((m) => m.id).filter((id) => ca.has(id) || cb.has(id));
   const moved = new Set(
     ids.filter((id) =>
@@ -403,19 +508,22 @@ function Compare({ a, b, materials }: { a: RunFull; b: RunFull; materials: Mater
   );
   return (
     <Card className="overflow-hidden">
-      <div className="border-b border-line bg-warn-soft/50 px-4 py-2.5">
-        <h3 className="font-bold">두 결과 비교</h3>
-        <p className="text-[13px] text-ink-2">
-          <b>A</b> {describeParams(a)} / <b>B</b> {describeParams(b)}. 함께 묶인 짝이 달라진 자료 {moved.size}개
-        </p>
+      <div className="flex flex-wrap gap-x-6 gap-y-1 px-5 py-3 text-[13px] text-ink-2">
+        <span>
+          <Badge tone="accent">A</Badge> {describeParams(a)}
+        </span>
+        <span>
+          <Badge tone="warn">B</Badge> {describeParams(b)}
+        </span>
+        <span className="ml-auto">함께 묶인 짝이 달라진 자료 {moved.size}개</span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[480px] text-sm">
-          <thead className="text-left text-[13px] text-ink-3">
+          <thead className="bg-surface-2 text-left text-[13px] text-ink-3">
             <tr>
-              <th className="px-4 py-2 font-semibold">자료</th>
-              <th className="px-4 py-2 font-semibold">A 묶음</th>
-              <th className="px-4 py-2 font-semibold">B 묶음</th>
+              <th className="px-5 py-2 font-medium">자료</th>
+              <th className="px-5 py-2 font-medium">A 묶음</th>
+              <th className="px-5 py-2 font-medium">B 묶음</th>
             </tr>
           </thead>
           <tbody>
@@ -423,89 +531,97 @@ function Compare({ a, b, materials }: { a: RunFull; b: RunFull; materials: Mater
               .filter((m) => ca.has(m.id) || cb.has(m.id))
               .map((m) => (
                 <tr key={m.id} className={clsx("border-t border-line", moved.has(m.id) && "bg-warn-soft/40")}>
-                  <td className="px-4 py-1.5 font-medium">{m.title}</td>
-                  <td className="px-4 py-1.5">{label(a, ca.get(m.id))}</td>
-                  <td className="px-4 py-1.5">{label(b, cb.get(m.id))}</td>
+                  <td className="px-5 py-2 font-medium">{m.title}</td>
+                  <td className="px-5 py-2">{label(a, ca.get(m.id))}</td>
+                  <td className="px-5 py-2">{label(b, cb.get(m.id))}</td>
                 </tr>
               ))}
           </tbody>
         </table>
       </div>
-      <p className="border-t border-line px-4 py-2 text-[13px] text-ink-2">
-        묶음 번호는 분석할 때마다 새로 붙어요. 번호보다 <b>어떤 자료끼리 함께 묶였는지</b>를 비교하세요.
-      </p>
     </Card>
   );
 }
 
-function PreviewModal({ open, onClose, cond, materials }: { open: boolean; onClose: () => void; cond: Conditions; materials: Material[] }) {
+/** ① 단계 오른쪽: 고른 조건으로 원문이 낱말로 바뀌는 모습 (자료 하나씩) */
+function PreprocessPreview({ cond, materials }: { cond: Conditions; materials: Material[] }) {
   const usable = useMemo(() => materials.filter((m) => cond.materialIds.includes(m.id)), [materials, cond.materialIds]);
   const [id, setId] = useState<string | null>(null);
   const [data, setData] = useState<{ stats: Stats; removed: Removed; morphemes: Morpheme[]; tokens: string[] } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const current = id ?? usable[0]?.id ?? null;
+  const current = usable.some((m) => m.id === id) ? id : (usable[0]?.id ?? null);
   const key = JSON.stringify([current, cond.preprocess]);
 
   useEffect(() => {
-    if (!open || !current) return;
+    if (!current) return;
     let alive = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- 미리보기 요청 시작
-    setLoading(true);
-    setError(null);
-    api<typeof data>("/api/preprocess", { method: "POST", json: { materialId: current, preprocess: cond.preprocess } })
-      .then((d) => alive && setData(d))
-      .catch((e) => alive && setError((e as Error).message))
-      .finally(() => alive && setLoading(false));
+    const t = window.setTimeout(() => {
+      setLoading(true);
+      setError(null);
+      api<typeof data>("/api/preprocess", { method: "POST", json: { materialId: current, preprocess: cond.preprocess } })
+        .then((d) => alive && setData(d))
+        .catch((e) => alive && setError((e as Error).message))
+        .finally(() => alive && setLoading(false));
+    }, 350);
     return () => {
       alive = false;
+      window.clearTimeout(t);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, key]);
+  }, [key]);
 
-  const m = usable.find((x) => x.id === current);
   return (
-    <Modal open={open} onClose={onClose} title="전처리 미리보기" wide>
-      <div className="space-y-3">
-        <p className="text-sm text-ink-2">지금 고른 품사·불용어 조건으로 원문이 어떻게 분석용 낱말로 바뀌는지 봐요.</p>
-        <div className="flex flex-wrap gap-1.5">
-          {usable.map((x) => (
-            <button
-              key={x.id}
-              onClick={() => setId(x.id)}
-              className={clsx(
-                "max-w-[16rem] truncate rounded-full border px-3 py-1 text-[13px]",
-                x.id === current ? "border-primary bg-primary font-semibold text-on-primary" : "border-line-strong text-ink-2 hover:bg-paper-2",
-              )}
-            >
-              {x.title}
-            </button>
+    <aside className="xl:sticky xl:top-28 xl:self-start">
+      <h2 className="text-lg font-bold tracking-tight">전처리 미리보기</h2>
+      <p className="mb-4 mt-0.5 text-sm text-ink-3">지금 조건으로 원문이 어떻게 분석용 낱말로 바뀌는지 봐요. 파란 낱말만 분석에 쓰여요.</p>
+      {usable.length ? (
+        <select value={current ?? ""} onChange={(e) => setId(e.target.value)} className="mb-3 h-10 w-full rounded-full bg-paper-2 px-4 text-sm font-medium" aria-label="미리볼 자료">
+          {usable.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.title}
+            </option>
           ))}
-        </div>
-        {error ? <Notice tone="bad">{error}</Notice> : null}
-        {loading || !data ? (
-          <div className="flex items-center gap-2 py-8 text-sm text-ink-3">
-            <Spinner /> 형태소 분석 중…
-          </div>
-        ) : (
-          <>
-            <PreprocessStats stats={data.stats} />
-            <div className="grid gap-3 lg:grid-cols-2">
-              <div className="rounded-xl bg-surface-2 p-3">
-                <p className="mb-2 text-[13px] font-semibold">원문</p>
-                <p className="max-h-60 overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed text-ink-2">{m?.content.slice(0, 1500)}</p>
+        </select>
+      ) : (
+        <Empty title="분석에 넣은 자료가 없어요" />
+      )}
+      {error ? <Notice tone="bad">{error}</Notice> : null}
+      {current ? (
+        <Card className={clsx("p-4 transition-opacity", loading && "opacity-60")}>
+          {data ? (
+            <>
+              <div className="grid grid-cols-3 gap-2">
+                {(
+                  [
+                    ["원문 글자", data.stats.chars],
+                    ["형태소", data.stats.morphemes],
+                    ["분석에 쓴 낱말", data.stats.kept],
+                  ] as const
+                ).map(([l, v], i) => (
+                  <div key={l} className={clsx("rounded-xl px-3 py-2", i === 2 ? "bg-accent-soft text-accent" : "bg-paper-2")}>
+                    <p className="text-[11px] text-ink-3">{l}</p>
+                    <p className="text-lg font-semibold tabular-nums">{v.toLocaleString()}</p>
+                  </div>
+                ))}
               </div>
-              <div className="rounded-xl bg-surface-2 p-3">
-                <p className="mb-2 text-[13px] font-semibold">형태소 (파란 낱말만 분석에 쓰여요)</p>
-                <div className="max-h-60 overflow-y-auto">
-                  <MorphemeStrip morphemes={data.morphemes} />
-                </div>
+              <p className="mb-2 mt-4 text-[13px] font-semibold">형태소 (파란 낱말만 분석에 쓰여요)</p>
+              <div className="max-h-56 overflow-y-auto">
+                <MorphemeStrip morphemes={data.morphemes} />
               </div>
+              <p className="mb-2 mt-4 text-[13px] font-semibold">빠진 낱말</p>
+              <RemovedLists removed={data.removed} />
+            </>
+          ) : (
+            <div className="flex items-center gap-2 py-8 text-sm text-ink-3">
+              <Spinner /> 형태소 분석 중…
             </div>
-            <RemovedLists removed={data.removed} />
-          </>
-        )}
-      </div>
-    </Modal>
+          )}
+        </Card>
+      ) : null}
+    </aside>
   );
 }
+
+// 아래는 다른 화면에서 재사용하는 보조 표시
+export { PreprocessStats };

@@ -20,12 +20,13 @@ export function Think({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** 읽는 순서: 원문이 낱말로 → 낱말 점수 → 자료 사이 거리 → 묶음 → 지도 */
 const TABS = [
-  { key: "clusters", label: "묶음" },
-  { key: "map", label: "자료 지도" },
-  { key: "terms", label: "낱말 점수" },
-  { key: "similarity", label: "자료 사이 거리" },
-  { key: "preprocess", label: "전처리 결과" },
+  { key: "preprocess", label: "1 전처리 결과" },
+  { key: "terms", label: "2 낱말 점수" },
+  { key: "similarity", label: "3 자료 사이 거리" },
+  { key: "clusters", label: "4 묶음" },
+  { key: "map", label: "5 자료 지도" },
 ] as const;
 type Tab = (typeof TABS)[number]["key"];
 
@@ -43,6 +44,7 @@ export function ResultView({
   runId: string;
 }) {
   const [tab, setTab] = useState<Tab>("clusters");
+  // 묶음을 먼저 보여 주되, 탭은 읽는 순서대로 놓는다
   const byId = useMemo(() => new Map(materials.map((m) => [m.id, m])), [materials]);
   const open = (id: string) => {
     const m = byId.get(id);
@@ -99,7 +101,6 @@ function Clusters({ result, open, onAddStopword }: { result: RunResult; open: (i
           ? "LDA는 자료마다 여러 주제가 섞여 있다고 봐요. 아래는 가장 비중이 큰 주제로만 나눈 모습이에요. 막대를 보고 주제가 섞인 자료를 찾아보세요."
           : "같은 묶음에 들어간 자료를 원문과 비교해 보세요. 왜 함께 묶였을까요? 낱말은 비슷하지만 글의 목적에는 맞지 않는 자료는 없나요?"}
       </Think>
-      <MetricsLine result={result} />
       <div className="grid gap-3 lg:grid-cols-2">
         {result.clusters.map((c) => (
           <div key={c.id} className="card-sm p-4" style={{ borderTop: `4px solid ${clusterColor(c.id)}` }}>
@@ -167,25 +168,6 @@ function TopicBar({ dist }: { dist: number[] }) {
   );
 }
 
-function MetricsLine({ result }: { result: RunResult }) {
-  const m = result.metrics;
-  return (
-    <div className="flex flex-wrap gap-2 text-[13px]">
-      <Badge>남은 낱말 종류 {result.vocabSize}개</Badge>
-      <Badge>{result.method === "lda" ? "주제" : "묶음"} {result.k}개</Badge>
-      {m.silhouette !== undefined ? (
-        <Badge tone="accent">
-          <span title="-1~1. 같은 묶음끼리 가깝고 다른 묶음과 멀수록 커요.">실루엣 점수 {m.silhouette.toFixed(3)}</span>
-        </Badge>
-      ) : null}
-      {m.perplexity !== undefined ? (
-        <Badge>
-          <span title="주제 모형이 자료를 얼마나 '헷갈려' 하는지. 작을수록 잘 설명하지만 자료가 적으면 믿기 어려워요.">혼란도 {m.perplexity}</span>
-        </Badge>
-      ) : null}
-    </div>
-  );
-}
 
 function KChart({ result }: { result: RunResult }) {
   const max = Math.max(...result.kCandidates.map((c) => c.silhouette), 0.0001);
@@ -490,7 +472,7 @@ export function RemovedLists({ removed }: { removed: RunResult["preprocessing"][
   return (
     <div className="grid gap-3 md:grid-cols-3">
       {groups.map(([label, list]) => (
-        <div key={label} className="card-sm p-3">
+        <div key={label} className="rounded-xl bg-paper-2/70 p-3">
           <p className="mb-2 text-[13px] font-semibold">{label}</p>
           {list.length ? (
             <p className="text-[13px] leading-relaxed text-ink-2">

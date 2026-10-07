@@ -23,7 +23,11 @@ export const GET = handle(async (_req: Request, { params }: Ctx) => {
 
 const Patch = z.object({
   name: z.string().trim().min(1).max(60).optional(),
-  openStages: z.array(z.enum(STAGE_KEYS as [string, ...string[]])).optional(),
+  // 예전 학급의 'generate'(분석에 합쳐짐)는 받아서 걸러낸다
+  openStages: z
+    .array(z.string())
+    .transform((v) => v.filter((k) => (STAGE_KEYS as string[]).includes(k)))
+    .optional(),
   writingMode: z.enum(["group", "individual", "both"]).optional(),
   allowPeerView: z.boolean().optional(),
   selfSelectGroup: z.boolean().optional(),

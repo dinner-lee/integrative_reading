@@ -1,7 +1,7 @@
 "use client";
 
 import { useUpdateMyPresence } from "@liveblocks/react/suspense";
-import { ArrowLeft, BookOpen, Boxes, ChartScatter, ListTree, Lock, PenLine, Sparkles, Target } from "lucide-react";
+import { ArrowLeft, Lock } from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,21 +14,10 @@ import { Badge, clsx } from "../ui";
 import { useRoomCtx } from "./context";
 import { AnalyzeStage } from "./stages/AnalyzeStage";
 import { CollectStage } from "./stages/CollectStage";
-import { GenerateStage } from "./stages/GenerateStage";
 import { OrganizeStage } from "./stages/OrganizeStage";
 import { PlanStage } from "./stages/PlanStage";
 import { ReflectStage } from "./stages/ReflectStage";
 import { WriteStage } from "./stages/WriteStage";
-
-const ICONS: Record<StageKey, React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>> = {
-  plan: Target,
-  collect: BookOpen,
-  analyze: ChartScatter,
-  generate: Boxes,
-  organize: ListTree,
-  write: PenLine,
-  reflect: Sparkles,
-};
 
 /**
  * 상단: 왼쪽 로고 + 수업 제목, 가운데 둥근 막대 stepper, 오른쪽 '설정' 버튼 하나.
@@ -89,14 +78,14 @@ export function StageShell({
           {/* 왼쪽: 로고 + 수업 제목 */}
           <div className="flex min-w-0 items-center gap-2.5">
             {back ? (
-              <Link href={back.href} className="pressable flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper-2 text-ink-2 hover:bg-paper-3" aria-label={back.label} title={back.label}>
+              <Link href={back.href} className="pressable flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-paper-2 text-ink-2 hover:bg-paper-3" aria-label={back.label} title={back.label}>
                 <ArrowLeft size={18} />
               </Link>
             ) : null}
-            <Image src="/logo.png" alt="" width={36} height={36} className="h-9 w-9 shrink-0 rounded-[10px]" priority />
-            <div className="min-w-0">
-              <p className="truncate text-[15px] font-bold leading-tight">{title}</p>
-              {badge ? <div className="mt-0.5 flex items-center gap-1">{badge}</div> : null}
+            <Image src="/logo.png" alt="" width={44} height={44} className="h-11 w-11 shrink-0 rounded-xl" priority />
+            <div className="flex h-11 min-w-0 items-center gap-2">
+              <p className="truncate text-xl font-bold leading-none tracking-tight">{title}</p>
+              {badge ? <div className="flex items-center gap-1">{badge}</div> : null}
             </div>
           </div>
 
@@ -108,11 +97,10 @@ export function StageShell({
           {/* 가운데: 둥근 막대 stepper */}
           <nav aria-label="활동 단계" className="col-span-2 lg:col-span-1 lg:justify-self-center">
             <LayoutGroup id={`stages-${groupId}`}>
-              <ol className="pill-bar mx-auto flex w-fit max-w-full items-center gap-0.5 overflow-x-auto p-1">
+              <ol className="pill-bar mx-auto flex h-11 w-fit max-w-full items-center gap-0.5 overflow-x-auto p-1">
                 {stages.map((s) => {
                   const open = openStages.includes(s.key);
                   const active = s.key === stage;
-                  const Icon = ICONS[s.key];
                   return (
                     <li key={s.key} className="shrink-0">
                       <button
@@ -122,15 +110,14 @@ export function StageShell({
                         aria-label={`${s.label}${open ? "" : " (잠김)"}`}
                         title={open ? s.desc : "선생님이 아직 열지 않은 단계예요"}
                         className={clsx(
-                          "pressable relative flex min-w-[60px] flex-col items-center gap-0.5 rounded-full px-3 py-1.5 sm:min-w-[68px]",
-                          active ? "text-ink" : open ? "text-ink-2 hover:text-ink" : "cursor-not-allowed text-ink-3/60",
+                          "pressable relative flex h-9 items-center gap-1.5 rounded-full px-4 text-[15px]",
+                          active ? "font-semibold text-ink" : open ? "font-medium text-ink-2 hover:text-ink" : "cursor-not-allowed font-medium text-ink-3/60",
                         )}
                       >
                         {active ? <motion.span layoutId="stage-pill" className="pill-thumb absolute inset-0 rounded-full" transition={springs.quick} aria-hidden /> : null}
-                        <span className="relative flex h-5 items-center">
-                          {open ? <Icon size={18} strokeWidth={active ? 2.2 : 1.8} /> : <Lock size={16} strokeWidth={1.8} />}
-                        </span>
-                        <span className={clsx("relative text-[11px] leading-none", active ? "font-semibold" : "font-medium")}>{s.short}</span>
+                        <span className="relative hidden lg:inline">{s.label}</span>
+                        <span className="relative lg:hidden">{s.short}</span>
+                        {!open ? <Lock size={13} className="relative" /> : null}
                       </button>
                     </li>
                   );
@@ -154,8 +141,7 @@ export function StageShell({
             </p>
             {stage === "plan" && <PlanStage />}
             {stage === "collect" && <CollectStage />}
-            {stage === "analyze" && <AnalyzeStage onGoNext={openStages.includes("generate") ? () => go("generate") : undefined} />}
-            {stage === "generate" && <GenerateStage onGoAnalyze={openStages.includes("analyze") ? () => go("analyze") : undefined} />}
+            {stage === "analyze" && <AnalyzeStage />}
             {stage === "organize" && <OrganizeStage />}
             {stage === "write" && <WriteStage />}
             {stage === "reflect" && <ReflectStage />}

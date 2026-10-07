@@ -39,7 +39,7 @@ export function SettingsMenu({ children, label = "설정" }: { children: ReactNo
         aria-label={label}
         title={label}
         className={clsx(
-          "pressable flex h-10 w-10 items-center justify-center rounded-full bg-paper-2 text-ink-2 hover:bg-paper-3 hover:text-ink",
+          "pressable flex h-11 w-11 items-center justify-center rounded-full bg-paper-2 text-ink-2 hover:bg-paper-3 hover:text-ink",
           open && "bg-paper-3 text-ink",
         )}
       >
@@ -58,7 +58,7 @@ export function SettingsMenu({ children, label = "설정" }: { children: ReactNo
             exit={{ opacity: 0, scale: 0.96, y: -2, transition: { duration: 0.12 } }}
             transition={springs.quick}
             style={{ transformOrigin: "top right" }}
-            className="material-panel absolute right-0 top-12 z-40 w-[min(320px,calc(100vw-2rem))] rounded-[var(--radius-panel)] p-2 text-ink"
+            className="material-panel absolute right-0 top-13 z-40 w-[min(320px,calc(100vw-2rem))] rounded-[var(--radius-panel)] p-2 text-ink"
           >
             {children}
           </motion.div>

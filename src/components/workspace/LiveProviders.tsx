@@ -52,6 +52,7 @@ export function LiveProviders({ children }: { children: ReactNode }) {
       authEndpoint="/api/liveblocks-auth"
       baseUrl={process.env.NEXT_PUBLIC_LIVEBLOCKS_BASE_URL || undefined}
       throttle={50}
+      badgeLocation="bottom-left"
       resolveUsers={async ({ userIds }) => {
         const qs = userIds.map((id) => `userIds=${encodeURIComponent(id)}`).join("&");
         const res = await fetch(`/api/users?${qs}`);

@@ -11,7 +11,7 @@ import { mediaLabel } from "@/lib/media";
 import { METHODS } from "@/lib/stages";
 import type { Decision } from "../../../../liveblocks.config";
 import { springs } from "../../motion";
-import { Badge, Button, Collapse, Empty, Input, Notice, SectionTitle, Spinner, Textarea, clsx, clusterColor } from "../../ui";
+import { Badge, Button, Collapse, Empty, Input, Notice, Spinner, Textarea, clsx, clusterColor } from "../../ui";
 import { userKey, useRoomCtx } from "../context";
 import { Discussion, DiscussionCount } from "../Discussion";
 import { DraggableItem, dropClass, useDragToDrop } from "../dnd";
@@ -27,6 +27,7 @@ export const DECISIONS: { value: Decision; label: string; tone: "ok" | "warn" | 
   { value: "excluded", label: "제외", tone: "bad", prompt: "왜 쓰지 않는지(목적·신뢰성·중복 등)" },
 ];
 
+/** 분석 단계의 ⑤ 이름·선별로 쓰인다 */
 export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
   const { groupId, canEdit, viewer } = useRoomCtx();
   const { materials } = useMaterials(groupId);
@@ -129,27 +130,27 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
 
   return (
     <div>
-      <SectionTitle
-        title="내용 생성하기"
-        desc="묶음에 이름을 붙이고, 자료마다 선정·보류·제외를 정해요."
-        actions={
-          canEdit && clusters.length ? (
-            <Button onClick={addCluster}>
-              <Plus size={15} /> 새 묶음
-            </Button>
-          ) : null
-        }
-      />
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-bold tracking-tight">묶음에 이름 붙이고 자료 고르기</h2>
+          <p className="mt-0.5 text-sm text-ink-3">묶음을 원문과 대조해 이름을 붙이고 우선순위를 정해요. 자료마다 선정·보류·제외를 고르고 근거를 적어요.</p>
+        </div>
+        {canEdit && clusters.length ? (
+          <Button onClick={addCluster}>
+            <Plus size={15} /> 새 묶음
+          </Button>
+        ) : null}
+      </div>
       <PlanSummary className="mb-4" />
 
       {clusters.length === 0 ? (
         <Empty title="아직 묶음이 없어요">
-          <p>자료 분석하기에서 결과 하나를 골라 ‘이 결과로 내용 생성하기’를 눌러요.</p>
+          <p>4 비교·채택에서 결과 하나를 골라 ‘이 결과로 이름 붙이기’를 눌러요.</p>
           {canEdit ? (
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               {onGoAnalyze ? (
                 <Button variant="primary" onClick={onGoAnalyze}>
-                  자료 분석하러 가기
+                  묶기로 가기
                 </Button>
               ) : null}
               <Button onClick={() => startManual(materials.map((m) => m.id))} disabled={!materials.length}>

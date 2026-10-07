@@ -7,8 +7,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { STAGES } from "@/lib/stages";
 
 const GROUPS = [
-  { title: "자료를 모으고 묶기", stages: STAGES.slice(0, 4), offset: 0 },
-  { title: "글로 엮기", stages: STAGES.slice(4), offset: 4 },
+  { title: "자료를 모으고 묶기", stages: STAGES.slice(0, 3), offset: 0 },
+  { title: "글로 엮기", stages: STAGES.slice(3), offset: 3 },
 ];
 
 export default function Home() {
@@ -22,7 +22,7 @@ export default function Home() {
           </Link>
           <nav className="pill-bar flex h-11 items-center gap-1 p-1" aria-label="주 메뉴">
             <a href="#stages" className="pressable hidden rounded-full px-3.5 text-sm text-ink-2 hover:text-ink sm:block">
-              일곱 단계
+              여섯 단계
             </a>
             <ThemeToggle className="h-9 bg-transparent p-0" />
             <Link href="/teacher/login" className="pressable flex h-9 items-center gap-1 rounded-full bg-primary px-4 text-sm font-semibold text-on-primary hover:bg-accent-hover">
@@ -56,8 +56,8 @@ export default function Home() {
         <section id="stages" className="mt-28 scroll-mt-24 lg:mt-40" aria-labelledby="stages-title">
           <div className="grid gap-8 lg:grid-cols-[180px_1fr]">
             <div className="flex flex-col items-start gap-3">
-              <span className="rounded-full bg-paper-2 px-3 py-1 font-mono text-xs tabular-nums text-ink-2">01 / 07</span>
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-3">일곱 단계</span>
+              <span className="rounded-full bg-paper-2 px-3 py-1 font-mono text-xs tabular-nums text-ink-2">01 / 06</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-3">여섯 단계</span>
             </div>
             <h2 id="stages-title" className="max-w-[22ch] text-[clamp(1.75rem,3.6vw,3rem)] font-semibold leading-[1.12] tracking-[-0.025em]">
               자료는 많고, 글에 쓸 것은 적어요. <span className="text-ink-3">컴퓨터가 묶어 주면 고르고 엮는 건 우리 몫이에요.</span>

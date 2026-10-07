@@ -2,8 +2,7 @@
 export const STAGES = [
   { key: "plan", label: "계획하기", short: "계획", process: "계획하기", desc: "화제, 글의 목적, 예상 독자를 정해요." },
   { key: "collect", label: "자료 모으기", short: "수집", process: "생성하기", desc: "자료를 찾아 등록하고 출처를 적어요." },
-  { key: "analyze", label: "자료 분석하기", short: "분석", process: "생성하기", desc: "텍스트 마이닝으로 자료를 묶어 보고 조건을 바꿔 비교해요." },
-  { key: "generate", label: "내용 생성하기", short: "생성", process: "생성하기", desc: "묶음에 이름을 붙이고 우선순위와 선정·보류·제외를 정해요." },
+  { key: "analyze", label: "자료 분석하기", short: "분석", process: "생성하기", desc: "텍스트 마이닝으로 자료를 묶어 보고, 묶음에 이름을 붙이고 선정·보류·제외를 정해요." },
   { key: "organize", label: "조직하기", short: "조직", process: "조직하기", desc: "개요를 짜고 자료를 어디에 쓸지 정해요." },
   { key: "write", label: "표현하기", short: "표현", process: "표현하기", desc: "개요와 자료를 보며 함께 글을 쓰고 댓글을 남겨요." },
   { key: "reflect", label: "고쳐쓰기·성찰", short: "성찰", process: "고쳐쓰기", desc: "다른 모둠 글을 읽고 자료 선별 과정을 돌아봐요." },
