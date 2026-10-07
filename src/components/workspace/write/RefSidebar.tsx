@@ -2,27 +2,26 @@
 
 import { useStorage } from "@liveblocks/react/suspense";
 import type { Editor } from "@tiptap/react";
-import { BookOpen, Boxes, ChevronDown, ChevronRight, ListPlus, ListTree, PanelLeftClose, Quote, Target, TextQuote } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronRight, ListPlus, ListTree, PanelLeftClose, Quote, Target, TextQuote } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { track } from "@/lib/client/logger";
 import { citation, mediaLabel } from "@/lib/media";
 import { useToast } from "../../toast";
-import { Button, clsx, clusterColor } from "../../ui";
+import { Button, clsx } from "../../ui";
 import { PlanSummary } from "../PlanSummary";
 import type { Material } from "../types";
 
-type Tab = "outline" | "clusters" | "materials" | "plan";
+type Tab = "outline" | "materials" | "plan";
 const ROLE = { intro: "처음", body: "가운데", conclusion: "끝" } as const;
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 /**
  * 글을 쓸 때 옆에 두는 참고 목록.
- * 위: 폴더 목록(개요·묶음·자료·계획), 아래: 고른 목록의 내용이 한 가지 모양의 행으로.
+ * 위: 폴더 목록(개요·자료·계획), 아래: 고른 목록의 내용이 한 가지 모양의 행으로.
  */
 export function RefSidebar({ editor, materials, canInsert, onCollapse }: { editor: Editor | null; materials: Material[]; canInsert: boolean; onCollapse?: () => void }) {
   const [tab, setTab] = useState<Tab>("outline");
   const outline = useStorage((root) => root.outline);
-  const clusters = useStorage((root) => root.clusters);
   const decisions = useStorage((root) => root.decisions);
   const byId = useMemo(() => new Map(materials.map((m) => [m.id, m])), [materials]);
 
@@ -40,7 +39,6 @@ export function RefSidebar({ editor, materials, canInsert, onCollapse }: { edito
 
   const NAV: { key: Tab; label: string; icon: typeof ListTree; count?: number }[] = [
     { key: "outline", label: "개요", icon: ListTree, count: outline?.length ?? 0 },
-    { key: "clusters", label: "묶음", icon: Boxes, count: clusters?.length ?? 0 },
     { key: "materials", label: "자료", icon: BookOpen, count: materials.length },
     { key: "plan", label: "계획", icon: Target },
   ];
@@ -109,23 +107,6 @@ export function RefSidebar({ editor, materials, canInsert, onCollapse }: { edito
                 })}
               </div>
             ))}
-          </div>
-        ) : null}
-
-        {tab === "clusters" ? (
-          <div className="space-y-4">
-            {(clusters ?? []).map((c, i) => (
-              <div key={c.id}>
-                <Row title={c.name || `이름 없는 묶음 ${i + 1}`} dot={clusterColor(i)} bold />
-                {c.note ? <p className="px-3 pb-1 text-[13px] leading-snug text-ink-3">{c.note}</p> : null}
-                {c.materialIds.map((id) => {
-                  const m = byId.get(id);
-                  const d = decisions?.[id];
-                  return m ? <MaterialItem key={id} m={m} onInsert={canInsert ? insert : undefined} status={d?.status} reason={d?.reason} indent /> : null;
-                })}
-              </div>
-            ))}
-            {!clusters?.length ? <p className="px-3 py-6 text-center text-[13px] text-ink-3">자료 분석하기에서 만든 묶음이 여기에 보여요.</p> : null}
           </div>
         ) : null}
 
