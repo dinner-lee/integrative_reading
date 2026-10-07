@@ -2,29 +2,24 @@
 
 import { useStorage } from "@liveblocks/react/suspense";
 import type { Editor } from "@tiptap/react";
-import { ChevronDown, ChevronRight, ListPlus, Quote, TextQuote } from "lucide-react";
+import { BookOpen, Boxes, ChevronDown, ChevronRight, ListPlus, ListTree, PanelLeftClose, Quote, Target, TextQuote } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { track } from "@/lib/client/logger";
-import { useToast } from "../../toast";
 import { citation, mediaLabel } from "@/lib/media";
-import { Badge, Button, clsx, clusterColor } from "../../ui";
+import { useToast } from "../../toast";
+import { Button, clsx, clusterColor } from "../../ui";
 import { PlanSummary } from "../PlanSummary";
 import type { Material } from "../types";
 
-const TABS = [
-  { key: "outline", label: "개요" },
-  { key: "clusters", label: "묶음" },
-  { key: "materials", label: "자료" },
-  { key: "plan", label: "계획" },
-] as const;
-type Tab = (typeof TABS)[number]["key"];
-
+type Tab = "outline" | "clusters" | "materials" | "plan";
 const ROLE = { intro: "처음", body: "가운데", conclusion: "끝" } as const;
-
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-/** 앞 단계에서 정리한 것을 끌어오거나 참고하는 사이드바 */
-export function RefSidebar({ editor, materials, canInsert }: { editor: Editor | null; materials: Material[]; canInsert: boolean }) {
+/**
+ * 글을 쓸 때 옆에 두는 참고 목록.
+ * 위: 폴더 목록(개요·묶음·자료·계획), 아래: 고른 목록의 내용이 한 가지 모양의 행으로.
+ */
+export function RefSidebar({ editor, materials, canInsert, onCollapse }: { editor: Editor | null; materials: Material[]; canInsert: boolean; onCollapse?: () => void }) {
   const [tab, setTab] = useState<Tab>("outline");
   const outline = useStorage((root) => root.outline);
   const clusters = useStorage((root) => root.clusters);
@@ -43,135 +38,140 @@ export function RefSidebar({ editor, materials, canInsert }: { editor: Editor | 
     return [...new Set([...placed, ...selected])].filter((id) => byId.has(id));
   }, [outline, decisions, materials, byId]);
 
-  function insertOutline() {
-    const html = (outline ?? [])
-      .map((s) => `<h2>${esc(s.title)}</h2>${s.point ? `<p>${esc(s.point)}</p>` : "<p></p>"}`)
-      .join("");
-    insert(html, "outline_all", { sections: outline?.length ?? 0 });
-  }
+  const NAV: { key: Tab; label: string; icon: typeof ListTree; count?: number }[] = [
+    { key: "outline", label: "개요", icon: ListTree, count: outline?.length ?? 0 },
+    { key: "clusters", label: "묶음", icon: Boxes, count: clusters?.length ?? 0 },
+    { key: "materials", label: "자료", icon: BookOpen, count: materials.length },
+    { key: "plan", label: "계획", icon: Target },
+  ];
 
-  function insertReferences() {
-    const items = usedIds.map((id) => `<li><p>${esc(citation(byId.get(id)!))}</p></li>`).join("");
-    insert(`<h2>출처</h2><ol>${items}</ol>`, "references", { count: usedIds.length });
-  }
+  const insertOutline = () =>
+    insert((outline ?? []).map((s) => `<h2>${esc(s.title)}</h2>${s.point ? `<p>${esc(s.point)}</p>` : "<p></p>"}`).join(""), "outline_all", { sections: outline?.length ?? 0 });
+  const insertReferences = () =>
+    insert(`<h2>출처</h2><ol>${usedIds.map((id) => `<li><p>${esc(citation(byId.get(id)!))}</p></li>`).join("")}</ol>`, "references", { count: usedIds.length });
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex border-b border-line" role="tablist">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            role="tab"
-            aria-selected={tab === t.key}
-            onClick={() => {
-              setTab(t.key);
-              track("write.sidebar_tab", { tab: t.key }, { stage: "write" });
-            }}
-            className={clsx(
-              "-mb-px flex-1 border-b-2 py-2.5 text-sm font-medium",
-              tab === t.key ? "border-accent text-accent" : "border-transparent text-ink-2 hover:text-ink",
-            )}
-          >
-            {t.label}
+      <div className="flex items-center justify-between px-4 pb-1 pt-4">
+        <p className="text-[13px] font-semibold text-ink-3">참고</p>
+        {onCollapse ? (
+          <button onClick={onCollapse} className="pressable flex h-8 w-8 items-center justify-center rounded-full text-ink-3 hover:bg-paper-2 hover:text-ink" aria-label="사이드바 닫기">
+            <PanelLeftClose size={16} />
           </button>
-        ))}
+        ) : null}
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <nav className="px-2" role="tablist" aria-label="참고 목록">
+        {NAV.map((n) => {
+          const on = tab === n.key;
+          const Icon = n.icon;
+          return (
+            <button
+              key={n.key}
+              role="tab"
+              aria-selected={on}
+              aria-label={n.label}
+              onClick={() => {
+                setTab(n.key);
+                track("write.sidebar_tab", { tab: n.key }, { stage: "write" });
+              }}
+              className={clsx("pressable flex w-full items-center gap-3 rounded-xl px-3 py-2 text-[15px]", on ? "bg-paper-2 font-semibold text-ink" : "text-ink-2 hover:bg-paper-2/60 hover:text-ink")}
+            >
+              <Icon size={18} strokeWidth={1.8} className={on ? "text-ink" : "text-ink-3"} />
+              <span className="flex-1 text-left">{n.label}</span>
+              {n.count !== undefined ? <span className="rounded-full bg-paper-3/70 px-2 py-0.5 text-xs tabular-nums text-ink-2">{n.count}</span> : null}
+            </button>
+          );
+        })}
+      </nav>
+
+      <div className="mx-4 my-3 border-t border-line" />
+
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-4">
         {tab === "outline" ? (
-          <div className="space-y-2">
+          <div className="space-y-4">
             {canInsert ? (
-              <Button size="sm" className="w-full" onClick={insertOutline}>
+              <Button size="sm" className="mx-2 w-[calc(100%-1rem)]" onClick={insertOutline}>
                 <ListPlus size={15} /> 개요 뼈대를 글에 넣기
               </Button>
             ) : null}
             {(outline ?? []).map((s) => (
-              <div
-                key={s.id}
-                draggable
-                onDragStart={(e) => e.dataTransfer.setData("text/plain", s.title)}
-                className="card-sm p-3"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-bold">
-                    <span className="mr-1.5 text-xs font-semibold text-ink-3">{ROLE[s.role]}</span>
-                    {s.title}
-                  </p>
-                  {canInsert ? (
-                    <button
-                      onClick={() => insert(`<h2>${esc(s.title)}</h2><p></p>`, "outline_heading", { sectionId: s.id })}
-                      className="text-xs text-accent hover:underline"
-                    >
-                      제목 넣기
-                    </button>
-                  ) : null}
-                </div>
-                {s.point ? <p className="mt-1 text-[13px] text-ink-2">{s.point}</p> : null}
-                {s.materialIds.length ? (
-                  <ul className="mt-2 space-y-1">
-                    {s.materialIds.map((id) => {
-                      const m = byId.get(id);
-                      return m ? <MaterialItem key={id} m={m} onInsert={canInsert ? insert : undefined} /> : null;
-                    })}
-                  </ul>
-                ) : null}
+              <div key={s.id}>
+                <Row
+                  title={s.title}
+                  meta={ROLE[s.role]}
+                  bold
+                  action={canInsert ? { label: "제목 넣기", onClick: () => insert(`<h2>${esc(s.title)}</h2><p></p>`, "outline_heading", { sectionId: s.id }) } : undefined}
+                />
+                {s.point ? <p className="px-3 pb-1 text-[13px] leading-snug text-ink-3">{s.point}</p> : null}
+                {s.materialIds.map((id) => {
+                  const m = byId.get(id);
+                  return m ? <MaterialItem key={id} m={m} onInsert={canInsert ? insert : undefined} indent /> : null;
+                })}
               </div>
             ))}
           </div>
         ) : null}
 
         {tab === "clusters" ? (
-          <div className="space-y-2">
+          <div className="space-y-4">
             {(clusters ?? []).map((c, i) => (
-              <div key={c.id} className="card-sm p-3" style={{ borderLeft: `4px solid ${clusterColor(i)}` }}>
-                <p className="text-sm font-bold">
-                  {i + 1}. {c.name || "이름 없는 묶음"}
-                </p>
-                {c.note ? <p className="mt-0.5 text-[13px] text-ink-2">{c.note}</p> : null}
-                <ul className="mt-2 space-y-1">
-                  {c.materialIds.map((id) => {
-                    const m = byId.get(id);
-                    const d = decisions?.[id];
-                    if (!m) return null;
-                    return (
-                      <li key={id}>
-                        <MaterialItem m={m} onInsert={canInsert ? insert : undefined} status={d?.status} reason={d?.reason} />
-                      </li>
-                    );
-                  })}
-                </ul>
+              <div key={c.id}>
+                <Row title={c.name || `이름 없는 묶음 ${i + 1}`} dot={clusterColor(i)} bold />
+                {c.note ? <p className="px-3 pb-1 text-[13px] leading-snug text-ink-3">{c.note}</p> : null}
+                {c.materialIds.map((id) => {
+                  const m = byId.get(id);
+                  const d = decisions?.[id];
+                  return m ? <MaterialItem key={id} m={m} onInsert={canInsert ? insert : undefined} status={d?.status} reason={d?.reason} indent /> : null;
+                })}
               </div>
             ))}
-            {!clusters?.length ? <p className="py-6 text-center text-[13px] text-ink-3">내용 생성하기에서 만든 묶음이 여기에 보여요.</p> : null}
+            {!clusters?.length ? <p className="px-3 py-6 text-center text-[13px] text-ink-3">자료 분석하기에서 만든 묶음이 여기에 보여요.</p> : null}
           </div>
         ) : null}
 
         {tab === "materials" ? (
-          <div className="space-y-2">
+          <div className="space-y-1">
             {canInsert && usedIds.length ? (
-              <Button size="sm" className="w-full" onClick={insertReferences}>
+              <Button size="sm" className="mx-2 mb-3 w-[calc(100%-1rem)]" onClick={insertReferences}>
                 <ListPlus size={15} /> 출처 목록 넣기 ({usedIds.length}개)
               </Button>
             ) : null}
-            <ul className="space-y-1">
-              {materials.map((m) => (
-                <li key={m.id}>
-                  <MaterialItem m={m} onInsert={canInsert ? insert : undefined} status={decisions?.[m.id]?.status} reason={decisions?.[m.id]?.reason} />
-                </li>
-              ))}
-            </ul>
+            {materials.map((m) => (
+              <MaterialItem key={m.id} m={m} onInsert={canInsert ? insert : undefined} status={decisions?.[m.id]?.status} reason={decisions?.[m.id]?.reason} />
+            ))}
           </div>
         ) : null}
 
-        {tab === "plan" ? <PlanSummary compact /> : null}
+        {tab === "plan" ? (
+          <div className="px-2">
+            <PlanSummary compact />
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
 
+/** 한 가지 모양의 행: (색 점) 제목 … [넣기] */
+function Row({ title, meta, dot, bold, action }: { title: string; meta?: string; dot?: string; bold?: boolean; action?: { label: string; onClick: () => void } }) {
+  return (
+    <div className="group flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm">
+      {dot ? <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: dot }} /> : null}
+      {meta ? <span className="shrink-0 text-xs text-ink-3">{meta}</span> : null}
+      <span className={clsx("min-w-0 flex-1 truncate", bold && "font-semibold")}>{title}</span>
+      {action ? (
+        <button onClick={action.onClick} className="pressable shrink-0 rounded-full bg-paper-2 px-2.5 py-0.5 text-xs font-medium text-ink-2 opacity-0 hover:bg-paper-3 focus:opacity-100 group-hover:opacity-100">
+          {action.label}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 const STATUS = {
-  selected: { label: "선정", tone: "ok" },
-  hold: { label: "보류", tone: "warn" },
-  excluded: { label: "제외", tone: "bad" },
+  selected: { label: "선정", cls: "text-ok" },
+  hold: { label: "보류", cls: "text-warn" },
+  excluded: { label: "제외", cls: "text-bad" },
 } as const;
 
 function MaterialItem({
@@ -179,11 +179,13 @@ function MaterialItem({
   onInsert,
   status,
   reason,
+  indent,
 }: {
   m: Material;
   onInsert?: (html: string, what: string, payload?: Record<string, unknown>) => void;
   status?: string;
   reason?: string;
+  indent?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -195,37 +197,36 @@ function MaterialItem({
     const sel = window.getSelection();
     const text = sel && bodyRef.current?.contains(sel.anchorNode) ? sel.toString().trim() : "";
     if (!text) {
-      toast({ message: "아래 자료 내용에서 넣고 싶은 부분을 먼저 드래그해서 골라 주세요.", tone: "bad" });
+      toast({ message: "자료 내용에서 넣고 싶은 부분을 먼저 드래그해서 골라 주세요.", tone: "bad" });
       return;
     }
     onInsert?.(`<blockquote><p>${esc(text)}</p></blockquote><p>${esc(cite)}</p>`, "quote", { materialId: m.id, chars: text.length });
   }
 
   return (
-    <div className={clsx("rounded-lg border text-sm", open ? "border-line-strong bg-surface" : "border-transparent")}>
-      <div className="flex items-center gap-1.5 px-1.5 py-1">
-        <button onClick={() => setOpen((v) => !v)} className="text-ink-3" aria-expanded={open} aria-label="펼치기">
+    <div className={clsx("rounded-xl text-sm", open && "bg-surface shadow-[var(--card-shadow)]", indent && "ml-3")}>
+      <div className="group flex items-center gap-2 px-3 py-1.5">
+        <button onClick={() => setOpen((v) => !v)} className="shrink-0 text-ink-3" aria-expanded={open} aria-label="펼치기">
           {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </button>
-        <button
-          draggable
-          onDragStart={(e) => e.dataTransfer.setData("text/plain", cite)}
-          onClick={() => setOpen((v) => !v)}
-          className="min-w-0 flex-1 truncate text-left hover:text-accent"
-          title={m.title}
-        >
+        <button onClick={() => setOpen((v) => !v)} className="min-w-0 flex-1 truncate text-left hover:text-accent" title={m.title}>
           {m.title}
         </button>
-        {st ? <Badge tone={st.tone}>{st.label}</Badge> : null}
+        {st ? <span className={clsx("shrink-0 text-[11px] font-medium", st.cls)}>{st.label}</span> : null}
+        {onInsert ? (
+          <button onClick={() => onInsert(`${esc(cite)} `, "citation", { materialId: m.id })} className="pressable shrink-0 rounded-full bg-paper-2 px-2.5 py-0.5 text-xs font-medium text-ink-2 opacity-0 hover:bg-paper-3 focus:opacity-100 group-hover:opacity-100" title="출처 표시를 글에 넣기">
+            넣기
+          </button>
+        ) : null}
       </div>
       {open ? (
-        <div className="space-y-2 px-2.5 pb-2.5">
+        <div className="space-y-2 px-3 pb-3">
           <p className="text-xs text-ink-3">
             {m.isOnline ? "온라인" : "오프라인"} {mediaLabel(m.mediaType)}
             {m.source ? `, ${m.source}` : ""}
           </p>
           {reason ? <p className="text-xs text-ink-2">근거: {reason}</p> : null}
-          <div ref={bodyRef} className="max-h-56 overflow-y-auto whitespace-pre-wrap rounded-lg bg-surface-2 p-2 text-[13px] leading-relaxed text-ink-2">
+          <div ref={bodyRef} className="max-h-56 overflow-y-auto whitespace-pre-wrap rounded-xl bg-paper-2/60 p-2.5 text-[13px] leading-relaxed text-ink-2">
             {m.content}
           </div>
           {onInsert ? (

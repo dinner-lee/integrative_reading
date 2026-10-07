@@ -5,7 +5,7 @@ import { LayoutGroup, motion } from "motion/react";
 import { springs } from "../../motion";
 import { useMemo, useState } from "react";
 import { track } from "@/lib/client/logger";
-import { Badge, Notice, clsx, clusterColor } from "../../ui";
+import { Notice, clsx, clusterColor } from "../../ui";
 import type { Material, Morpheme, RunResult } from "../types";
 
 export function Think({ children }: { children: React.ReactNode }) {

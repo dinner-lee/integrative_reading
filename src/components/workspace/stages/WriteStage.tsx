@@ -1,7 +1,7 @@
 "use client";
 
 import type { Editor } from "@tiptap/react";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { PanelLeftOpen } from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion, type PanInfo } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { GROUP_DRAFT_FIELD, studentDraftField } from "@/lib/rooms";
@@ -57,7 +57,7 @@ export function WriteStage() {
     );
   }
 
-  const panel = <RefSidebar editor={editor} materials={materials} canInsert={!!tab?.editable} />;
+  const panel = <RefSidebar editor={editor} materials={materials} canInsert={!!tab?.editable} onCollapse={() => setSidebar(false)} />;
 
   // 모바일 시트: 왼쪽에서 들어오고 왼쪽으로 나간다(같은 길). 놓는 속도의 방향으로 닫힐지 정한다.
   function onSheetDragEnd(_: unknown, info: PanInfo) {
@@ -116,9 +116,11 @@ export function WriteStage() {
         <section className="min-w-0 flex-1">
           {/* 카드 머리: 왼쪽 글 도구(회색 원), 오른쪽 문서 전환·사이드바 */}
           <div className="sticky top-[76px] z-10 flex flex-wrap items-center gap-2 bg-surface/95 px-4 pb-2 pt-4 backdrop-blur sm:px-8">
-            <Button size="sm" variant="secondary" onClick={() => setSidebar((v) => !v)} aria-label={sidebar ? "사이드바 닫기" : "사이드바 열기"} aria-expanded={sidebar} className="h-9 w-9 px-0">
-              {sidebar ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
-            </Button>
+            {!sidebar ? (
+              <Button size="sm" variant="secondary" onClick={() => setSidebar(true)} aria-label="사이드바 열기" aria-expanded={false} className="h-9 w-9 px-0">
+                <PanelLeftOpen size={16} />
+              </Button>
+            ) : null}
             {tab?.editable ? <KoToolbar editor={editor} /> : <span className="text-[13px] text-ink-3">읽기 전용. 글자를 골라 댓글을 남길 수 있어요.</span>}
             <div className="ml-auto flex items-center gap-2">
               {tabs.length > 1 ? (

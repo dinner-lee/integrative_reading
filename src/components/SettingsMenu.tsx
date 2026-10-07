@@ -1,6 +1,6 @@
 "use client";
 
-import { Settings } from "lucide-react";
+import { Settings, type LucideIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { springs } from "./motion";
@@ -11,6 +11,25 @@ import { clsx } from "./ui";
  * 패널은 버튼(오른쪽 위)에서 자라나고, 바깥을 누르거나 Esc로 닫힌다.
  */
 export function SettingsMenu({ children, label = "설정" }: { children: ReactNode; label?: string }) {
+  return <PopMenu icon={Settings} label={label} size="lg" rotate>{children}</PopMenu>;
+}
+
+/** 작은 동작 메뉴(⋯): 회색 원 버튼에서 패널이 자라난다 */
+export function PopMenu({
+  children,
+  label,
+  icon: Icon,
+  size = "md",
+  rotate,
+  align = "right",
+}: {
+  children: ReactNode;
+  label: string;
+  icon: LucideIcon;
+  size?: "md" | "lg";
+  rotate?: boolean;
+  align?: "right" | "left";
+}) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
@@ -39,12 +58,13 @@ export function SettingsMenu({ children, label = "설정" }: { children: ReactNo
         aria-label={label}
         title={label}
         className={clsx(
-          "pressable flex h-11 w-11 items-center justify-center rounded-full bg-paper-2 text-ink-2 hover:bg-paper-3 hover:text-ink",
+          "pressable flex items-center justify-center rounded-full bg-paper-2 text-ink-2 hover:bg-paper-3 hover:text-ink",
+          size === "lg" ? "h-11 w-11" : "h-8 w-8",
           open && "bg-paper-3 text-ink",
         )}
       >
-        <motion.span animate={{ rotate: open ? 45 : 0 }} transition={springs.quick} className="flex">
-          <Settings size={18} strokeWidth={1.9} />
+        <motion.span animate={{ rotate: open && rotate ? 45 : 0 }} transition={springs.quick} className="flex">
+          <Icon size={size === "lg" ? 18 : 16} strokeWidth={1.9} />
         </motion.span>
       </button>
       <AnimatePresence>
@@ -57,8 +77,12 @@ export function SettingsMenu({ children, label = "설정" }: { children: ReactNo
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -2, transition: { duration: 0.12 } }}
             transition={springs.quick}
-            style={{ transformOrigin: "top right" }}
-            className="material-panel absolute right-0 top-13 z-40 w-[min(320px,calc(100vw-2rem))] rounded-[var(--radius-panel)] p-2 text-ink"
+            style={{ transformOrigin: align === "right" ? "top right" : "top left" }}
+            className={clsx(
+              "material-panel absolute z-40 rounded-[var(--radius-panel)] p-2 text-ink",
+              align === "right" ? "right-0" : "left-0",
+              size === "lg" ? "top-13 w-[min(320px,calc(100vw-2rem))]" : "top-10 w-56",
+            )}
           >
             {children}
           </motion.div>
