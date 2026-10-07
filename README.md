@@ -91,7 +91,7 @@ npm run dev                     # http://localhost:3000
 ## 배포 (Vercel + Neon + 분석 서버)
 
 1. Neon에서 DB 생성 → `DATABASE_URL`(pooler), `DIRECT_URL`(direct).
-2. 분석 서버를 Docker로 배포 → 공개 주소를 `ANALYSIS_URL`, 같은 `ANALYSIS_SECRET`을 양쪽에.
+2. 분석 서버를 Docker로 배포 → 공개 주소를 `ANALYSIS_URL`, 같은 `ANALYSIS_SECRET`을 양쪽에. Railway라면 GitHub 저장소를 연결하고 서비스 설정에서 **Root Directory를 `analysis`**로 지정하면 `analysis/railway.json`(Dockerfile 빌드, `/health` 헬스체크)이 자동으로 적용됩니다.
 3. Vercel 환경 변수: `.env.example` 항목 모두(`SESSION_SECRET`은 새로 생성, Liveblocks는 운영용 `sk_prod_…` 권장).
 4. 첫 배포 뒤 `npx prisma db push`(DIRECT_URL 사용).
 5. 운영 중 교사 가입을 막으려면 `TEACHER_SIGNUP_CODE` 설정.
