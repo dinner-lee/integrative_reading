@@ -53,8 +53,8 @@ export function RefSidebar({ editor, materials, canInsert, onCollapse }: { edito
       <div className="flex items-center justify-between px-4 pb-1 pt-4">
         <p className="text-[13px] font-semibold text-ink-3">참고</p>
         {onCollapse ? (
-          <button onClick={onCollapse} className="pressable flex h-8 w-8 items-center justify-center rounded-full text-ink-3 hover:bg-paper-2 hover:text-ink" aria-label="사이드바 닫기">
-            <PanelLeftClose size={16} />
+          <button onClick={onCollapse} className="pressable flex h-9 w-9 items-center justify-center rounded-full text-ink-3 hover:bg-paper-2 hover:text-ink" aria-label="사이드바 닫기">
+            <PanelLeftClose size={18} />
           </button>
         ) : null}
       </div>

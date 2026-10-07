@@ -3,13 +3,6 @@ import Link from "next/link";
 import { JoinForm } from "@/components/JoinForm";
 import { LandingPreview } from "@/components/landing/Preview";
 import { Logo } from "@/components/Logo";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { STAGES } from "@/lib/stages";
-
-const GROUPS = [
-  { title: "자료를 모으고 묶기", stages: STAGES.slice(0, 3), offset: 0 },
-  { title: "글로 엮기", stages: STAGES.slice(3), offset: 3 },
-];
 
 export default function Home() {
   return (
@@ -19,12 +12,8 @@ export default function Home() {
           <Link href="/" className="pill-bar flex h-11 items-center pl-2 pr-4">
             <Logo size={30} wordmark />
           </Link>
-          <nav className="pill-bar flex h-11 items-center gap-1 p-1" aria-label="주 메뉴">
-            <a href="#stages" className="pressable hidden rounded-full px-3.5 text-sm text-ink-2 hover:text-ink sm:block">
-              여섯 단계
-            </a>
-            <ThemeToggle className="h-9 bg-transparent p-0" />
-            <Link href="/teacher/login" className="pressable flex h-9 items-center gap-1 rounded-full bg-primary px-4 text-sm font-semibold text-on-primary hover:bg-accent-hover">
+          <nav aria-label="주 메뉴">
+            <Link href="/teacher/login" className="pressable flex h-11 items-center gap-1 rounded-full bg-primary px-5 text-sm font-semibold text-on-primary hover:bg-accent-hover">
               교사 화면 <ArrowUpRight size={15} />
             </Link>
           </nav>
@@ -37,10 +26,10 @@ export default function Home() {
             <span className="pill-bar inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium">
               <Shapes size={15} /> 자료를 묶고 함께 쓰는 글쓰기
             </span>
-            <h1 className="display mt-7 text-ink">
+            <h1 className="display stage-title mt-7 text-ink">
               모으고. 묶고.
               <br />
-              함께 글로 엮어요.
+              함께 글로 풀어내요.
             </h1>
             <p className="lede mt-6 max-w-[34ch] text-ink-2">모은 자료를 컴퓨터가 어떻게 묶는지 살펴보고, 글의 목적에 맞는 자료를 모둠이 함께 골라 한 편의 글로 완성해요.</p>
             <div className="mt-9">
@@ -49,40 +38,6 @@ export default function Home() {
           </div>
           <div className="lg:pl-8">
             <LandingPreview />
-          </div>
-        </section>
-
-        <section id="stages" className="mt-28 scroll-mt-24 lg:mt-40" aria-labelledby="stages-title">
-          <div className="grid gap-8 lg:grid-cols-[180px_1fr]">
-            <div className="flex flex-col items-start gap-3">
-              <span className="rounded-full bg-paper-2 px-3 py-1 font-mono text-xs tabular-nums text-ink-2">01 / 06</span>
-              <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-3">여섯 단계</span>
-            </div>
-            <h2 id="stages-title" className="max-w-[22ch] text-[clamp(1.75rem,3.6vw,3rem)] font-semibold leading-[1.12] tracking-[-0.025em]">
-              자료는 많고, 글에 쓸 것은 적어요. <span className="text-ink-3">컴퓨터가 묶어 주면 고르고 엮는 건 우리 몫이에요.</span>
-            </h2>
-          </div>
-
-          <div className="mt-14 grid gap-x-12 gap-y-10 md:grid-cols-2 lg:ml-[212px]">
-            {GROUPS.map((g) => (
-              <div key={g.title}>
-                <h3 className="mb-4 text-sm font-semibold text-ink-3">{g.title}</h3>
-                <ol className="space-y-3">
-                  {g.stages.map((s, i) => {
-                    const n = g.offset + i + 1;
-                    return (
-                      <li key={s.key} className="card flex gap-4 p-5">
-                        <span className="h-fit shrink-0 rounded-full bg-paper-2 px-2.5 py-1 font-mono text-xs tabular-nums text-ink-2">{String(n).padStart(2, "0")}</span>
-                        <div>
-                          <p className="font-semibold">{s.label}</p>
-                          <p className="mt-0.5 text-sm leading-snug text-ink-2">{s.desc}</p>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </div>
-            ))}
           </div>
         </section>
       </main>

@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { GROUP_DRAFT_FIELD, studentDraftField } from "@/lib/rooms";
 import { track } from "@/lib/client/logger";
 import { project, springs } from "../../motion";
-import { Button, Spinner, clsx } from "../../ui";
+import { Spinner, clsx } from "../../ui";
 import { useRoomCtx } from "../context";
 import { useMaterials } from "../hooks";
 import { DocTitle } from "../write/DocTitle";
@@ -124,9 +124,15 @@ export function WriteStage() {
           {/* 카드 머리: 왼쪽 글 도구(회색 원), 오른쪽 문서 전환·사이드바 */}
           <div className="sticky top-[76px] z-10 flex flex-wrap items-center gap-2 bg-surface/95 px-4 pb-2 pt-4 backdrop-blur sm:px-8">
             {!sidebar ? (
-              <Button size="sm" variant="secondary" onClick={() => setSidebar(true)} aria-label="사이드바 열기" aria-expanded={false} className="h-9 w-9 px-0">
-                <PanelLeftOpen size={16} />
-              </Button>
+              <button
+                type="button"
+                onClick={() => setSidebar(true)}
+                className="pressable flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-paper-2 text-ink-2 hover:bg-paper-3 hover:text-ink"
+                aria-label="사이드바 열기"
+                aria-expanded={false}
+              >
+                <PanelLeftOpen size={18} className="shrink-0" />
+              </button>
             ) : null}
             {tab?.editable ? <KoToolbar editor={editor} /> : <span className="text-[13px] text-ink-3">읽기 전용. 글자를 골라 댓글을 남길 수 있어요.</span>}
             <div className="ml-auto flex items-center gap-2">

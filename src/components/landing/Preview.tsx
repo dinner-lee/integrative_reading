@@ -39,7 +39,7 @@ export function LandingPreview() {
         </span>
         <span className="pill-bar absolute bottom-4 right-4 flex items-center gap-3 px-3 py-1.5 text-[13px] text-ink">
           <span className="flex items-center gap-1.5">
-            <Users size={14} /> 모둠 4명, 한 화면에서
+            <Users size={14} /> 모둠 4명
           </span>
           <span className="flex items-center gap-1 text-ink-3">
             <Check size={14} /> 저장됨
