@@ -101,7 +101,7 @@ export function StageShell({
           <nav aria-label="활동 단계" className="col-span-2 lg:col-span-1 lg:justify-self-center">
             <LayoutGroup id={`stages-${groupId}`}>
               <ol className="pill-bar mx-auto flex h-11 w-fit max-w-full items-center gap-0.5 overflow-x-auto p-1">
-                {stages.map((s) => {
+                {stages.map((s, i) => {
                   const open = openStages.includes(s.key);
                   const active = s.key === stage;
                   return (
@@ -113,11 +113,21 @@ export function StageShell({
                         aria-label={`${s.label}${open ? "" : " (잠김)"}`}
                         title={open ? s.desc : "선생님이 아직 열지 않은 단계예요"}
                         className={clsx(
-                          "pressable relative flex h-9 items-center gap-1.5 rounded-full px-4 text-[15px]",
+                          "pressable relative flex h-9 items-center gap-1.5 rounded-full pl-3 pr-4 text-[15px]",
                           active ? "font-semibold text-ink" : open ? "font-medium text-ink-2 hover:text-ink" : "cursor-not-allowed font-medium text-ink-3/60",
                         )}
                       >
                         {active ? <motion.span layoutId="stage-pill" className="pill-thumb absolute inset-0 rounded-full" transition={springs.quick} aria-hidden /> : null}
+                        {/* 글자 크기(1em)와 같은 먹색 원 안의 단계 번호 */}
+                        <span
+                          className={clsx(
+                            "relative flex h-[1em] w-[1em] shrink-0 items-center justify-center rounded-full text-[10px] font-bold leading-none tabular-nums",
+                            open ? "bg-ink text-surface" : "bg-ink-3/40 text-surface",
+                          )}
+                          aria-hidden
+                        >
+                          {i + 1}
+                        </span>
                         <span className="relative hidden lg:inline">{s.label}</span>
                         <span className="relative lg:hidden">{s.short}</span>
                         {!open ? <Lock size={13} className="relative" /> : null}
