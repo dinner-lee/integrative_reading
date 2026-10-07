@@ -2,16 +2,17 @@
 
 import { LiveList, LiveObject } from "@liveblocks/client";
 import { useMutation, useStorage, useUpdateMyPresence } from "@liveblocks/react/suspense";
-import { ArrowLeft, ArrowRight, GitCompare, Play } from "lucide-react";
+import { ArrowLeft, ArrowRight, Boxes, ChartColumn, GitCompare, Play, SlidersHorizontal, Tags } from "lucide-react";
 import { nanoid } from "nanoid";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/lib/client/api";
 import { track } from "@/lib/client/logger";
 import { METHODS } from "@/lib/stages";
 import { useDialog } from "../../dialogs";
-import { Badge, Button, Card, Empty, Notice, Section, SectionTitle, Sections, Segmented, Spinner, Textarea, clsx, clusterColor } from "../../ui";
+import { Badge, Button, Card, Empty, Notice, Section, SectionTitle, Sections, Spinner, Textarea, clsx, clusterColor } from "../../ui";
 import { ClusterPanel, POS_OPTIONS, PreprocessPanel, type Conditions } from "../analysis/Conditions";
 import { MorphemeStrip, PreprocessStats, RemovedLists, ResultView } from "../analysis/ResultView";
+import { StepDock } from "../analysis/StepDock";
 import { useRoomCtx } from "../context";
 import { updateRunCache, useMaterials, useRun, useRuns } from "../hooks";
 import { MaterialDetail } from "../MaterialDetail";
@@ -36,12 +37,13 @@ export function describeParams(r: Pick<RunSummary, "method" | "params" | "materi
 }
 
 /** 군집화 순서: 자료·전처리 → 묶기 → 결과 → 비교·채택 */
+/* 하단 플로팅 독의 항목: 아이콘 + 짧은 라벨 */
 const STEPS = [
-  { key: "prep", label: "1 자료·전처리" },
-  { key: "cluster", label: "2 묶기" },
-  { key: "result", label: "3 결과" },
-  { key: "compare", label: "4 비교·채택" },
-  { key: "name", label: "5 이름·선별" },
+  { key: "prep", label: "자료·전처리", icon: SlidersHorizontal },
+  { key: "cluster", label: "묶기", icon: Boxes },
+  { key: "result", label: "결과", icon: ChartColumn },
+  { key: "compare", label: "비교·채택", icon: GitCompare },
+  { key: "name", label: "이름·선별", icon: Tags },
 ] as const;
 type StepKey = (typeof STEPS)[number]["key"];
 
@@ -197,20 +199,14 @@ export function AnalyzeStage() {
     );
   }
 
-  const stepOptions = STEPS.filter((s) => canEdit || s.key === "result" || s.key === "compare" || s.key === "name").map((s) => ({ value: s.key, label: s.label }));
   const canStep = (k: StepKey) => (k === "result" || k === "compare" ? hasRuns : k === "name" ? true : canEdit);
+  // 읽기 전용(교사·다른 모둠)은 조건 걸음을 숨기고, 아직 분석이 없으면 결과·비교는 비활성
+  const dockItems = STEPS.filter((s) => canEdit || s.key === "result" || s.key === "compare" || s.key === "name").map((s) => ({ key: s.key, label: s.label, icon: s.icon, disabled: !canStep(s.key) }));
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <SectionTitle
-        title="자료 분석하기"
-        desc="자료를 낱말로 바꾸고, 묶고, 결과를 읽고 비교한 뒤, 묶음에 이름을 붙이고 자료를 골라요."
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <Segmented value={step} onChange={(v) => canStep(v) && go(v)} options={stepOptions} />
-          </div>
-        }
-      />
+    <div className="mx-auto max-w-6xl pb-40 sm:pb-28">
+      <SectionTitle title="자료 분석하기" desc="자료를 낱말로 바꾸고, 묶고, 결과를 읽고 비교한 뒤, 묶음에 이름을 붙이고 자료를 골라요." />
+      <StepDock value={step} onChange={(v) => canStep(v) && go(v)} items={dockItems} label="분석 걸음" />
       {error ? (
         <Notice tone="bad" className="mb-5">
           {error}
