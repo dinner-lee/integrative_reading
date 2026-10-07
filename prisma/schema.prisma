@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Teacher {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime    @default(now())
+  classrooms   Classroom[]
+}
+
+/// 학급(수업). 초대 코드로 학생이 들어온다.
+model Classroom {
+  id              String   @id @default(cuid())
+  teacherId       String
+  teacher         Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  name            String
+  inviteCode      String   @unique
+  /// 학생이 열 수 있는 단계 목록 (plan, collect, analyze, generate, organize, write, reflect)
+  openStages      String[] @default(["plan", "collect"])
+  /// group: 모둠 공동 글 / individual: 개인 글(모둠원이 댓글) / both: 둘 다
+  writingMode     String   @default("group")
+  /// 다른 모둠의 진행 상황을 읽기 전용으로 볼 수 있는지
+  allowPeerView   Boolean  @default(true)
+  /// 학생이 직접 모둠을 고를 수 있는지
+  selfSelectGroup Boolean  @default(false)
+  /// 분석 방법 중 학생에게 보이는 것
+  enabledMethods  String[] @default(["tfidf_kmeans", "lda"])
+  archived        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  groups    Group[]
+  students  Student[]
+  materials Material[]
+  events    EventLog[]
+}
+
+model Group {
+  id          String        @id @default(cuid())
+  classroomId String
+  classroom   Classroom     @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  name        String
+  order       Int           @default(0)
+  createdAt   DateTime      @default(now())
+  students    Student[]
+  materials   Material[]
+  runs        AnalysisRun[]
+
+  @@index([classroomId])
+}
+
+model Student {
+  id          String      @id @default(cuid())
+  classroomId String
+  classroom   Classroom   @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  groupId     String?
+  group       Group?      @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  name        String
+  createdAt   DateTime    @default(now())
+  lastSeenAt  DateTime    @default(now())
+  materials   Material[]
+  runs        AnalysisRun[]
+  reflection  Reflection?
+
+  @@unique([classroomId, name])
+  @@index([groupId])
+}
+
+/// 학생이 수집한 자료 하나
+model Material {
+  id            String    @id @default(cuid())
+  classroomId   String
+  classroom     Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  groupId       String
+  group         Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  authorId      String?
+  author        Student?  @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  isOnline      Boolean
+  /// 매체 종류 (news, blog, public, encyclopedia, video, book, periodical, print, interview, other)
+  mediaType     String    @default("other")
+  title         String
+  url           String?
+  source        String?
+  publishedAt   String?
+  content       String
+  note          String?
+  /// manual: 직접 입력 / file: 파일에서 변환
+  inputMethod   String    @default("manual")
+  fileName      String?
+  /// 변환 직후 글자 수 (학생이 고친 뒤와 비교하기 위해)
+  extractedChars Int?
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([groupId])
+}
+
+/// 텍스트 마이닝 실행 한 번 (조건 + 결과)
+model AnalysisRun {
+  id          String   @id @default(cuid())
+  groupId     String
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdById String?
+  createdBy   Student? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  method      String
+  params      Json
+  materialIds String[]
+  result      Json
+  /// 학생이 남기는 해석 메모 ("조건을 바꾸니 무엇이 달라졌나")
+  note        String?
+  createdAt   DateTime @default(now())
+
+  @@index([groupId])
+}
+
+model Reflection {
+  id        String   @id @default(cuid())
+  studentId String   @unique
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  answers   Json
+  updatedAt DateTime @updatedAt
+}
+
+/// 연구용 활동 로그
+model EventLog {
+  id          BigInt    @id @default(autoincrement())
+  classroomId String
+  classroom   Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  groupId     String?
+  actorType   String
+  actorId     String
+  actorName   String?
+  stage       String?
+  type        String
+  payload     Json?
+  /// 브라우저에서 사건이 일어난 시각 (네트워크 지연과 구분)
+  clientAt    DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([classroomId, createdAt])
+  @@index([groupId, createdAt])
+}
