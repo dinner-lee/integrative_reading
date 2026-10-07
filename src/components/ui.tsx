@@ -84,6 +84,33 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
 });
 
 /** 입력란: 제목(h3 크기)과 도움말은 흰 입력 상자 바깥에 둔다. 요소는 <label>이라 입력과 연결된다. */
+/**
+ * 떠오르는 라벨 입력란(IFTA). 라벨이 입력란 안에 있다가 포커스하거나 값이 있으면 위로 작게 올라간다.
+ * placeholder는 " "로 고정해 :placeholder-shown으로 값 유무를 판단한다(전환은 globals.css .ifta).
+ */
+export const FloatField = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: ReactNode; inputClassName?: string }>(
+  function FloatField({ label, hint, className, inputClassName, ...rest }, ref) {
+    return (
+      <div className={className}>
+        <label className="ifta">
+          <input
+            ref={ref}
+            {...rest}
+            placeholder=" "
+            className={clsx(
+              "h-14 w-full rounded-[var(--field-radius)] bg-field px-3.5 pb-1.5 pt-6 text-[15px] text-ink shadow-[var(--field-shadow)]",
+              "focus:outline-none focus:shadow-[var(--field-shadow),0_0_0_2px_var(--focus)] disabled:bg-paper-2 disabled:shadow-none",
+              inputClassName,
+            )}
+          />
+          <span className="ifta-label">{label}</span>
+        </label>
+        {hint ? <p className="mt-1.5 text-sm text-ink-3">{hint}</p> : null}
+      </div>
+    );
+  },
+);
+
 export function Field({ label, hint, error, children, required }: { label: string; hint?: ReactNode; error?: string | null; children: ReactNode; required?: boolean }) {
   return (
     <label className="block">

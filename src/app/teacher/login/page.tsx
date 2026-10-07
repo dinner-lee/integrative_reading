@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button, Field, Input, Notice, Segmented } from "@/components/ui";
+import { Button, FloatField, Notice, Segmented } from "@/components/ui";
 import { api } from "@/lib/client/api";
 
 export default function TeacherLogin() {
@@ -49,27 +49,21 @@ export default function TeacherLogin() {
         </div>
         <form onSubmit={submit} className="space-y-4">
           {mode === "signup" ? (
-            <Field label="이름">
-              <Input className="login-field" value={form.name} onChange={set("name")} autoComplete="name" required />
-            </Field>
+            <FloatField label="이름" inputClassName="login-field" value={form.name} onChange={set("name")} autoComplete="name" required />
           ) : null}
-          <Field label="이메일">
-            <Input className="login-field" type="email" value={form.email} onChange={set("email")} autoComplete="email" required />
-          </Field>
-          <Field label="비밀번호" hint={mode === "signup" ? "8자 이상" : undefined}>
-            <Input
-              className="login-field"
-              type="password"
-              value={form.password}
-              onChange={set("password")}
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
-              required
-            />
-          </Field>
+          <FloatField label="이메일" inputClassName="login-field" type="email" value={form.email} onChange={set("email")} autoComplete="email" required />
+          <FloatField
+            label="비밀번호"
+            hint={mode === "signup" ? "8자 이상" : undefined}
+            inputClassName="login-field"
+            type="password"
+            value={form.password}
+            onChange={set("password")}
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            required
+          />
           {mode === "signup" ? (
-            <Field label="교사 가입 코드" hint="관리자가 정한 코드가 있을 때만 적어요.">
-              <Input className="login-field" value={form.signupCode} onChange={set("signupCode")} autoComplete="off" />
-            </Field>
+            <FloatField label="교사 가입 코드" hint="관리자가 정한 코드가 있을 때만 적어요." inputClassName="login-field" value={form.signupCode} onChange={set("signupCode")} autoComplete="off" />
           ) : null}
           {error ? <Notice tone="bad">{error}</Notice> : null}
           <Button type="submit" variant="primary" className="w-full" loading={loading}>

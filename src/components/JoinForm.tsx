@@ -4,7 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/client/api";
-import { Button, Field, Input, Notice } from "./ui";
+import { Button, FloatField, Input, Notice } from "./ui";
 
 /**
  * 학생 입장 폼.
@@ -66,13 +66,19 @@ export function JoinForm({ initialCode, inline }: { initialCode?: string; inline
   return (
     <form onSubmit={submit} className="space-y-4">
       {initialCode ? null : (
-        <Field label="초대 코드" hint="선생님이 알려 준 6자리 코드">
-          {codeInput}
-        </Field>
+        <FloatField
+          label="초대 코드"
+          hint="선생님이 알려 준 6자리 코드"
+          value={code}
+          onChange={(e) => setCode(e.target.value.toUpperCase())}
+          autoCapitalize="characters"
+          autoComplete="off"
+          maxLength={10}
+          inputClassName="font-mono uppercase tracking-[0.18em]"
+          required
+        />
       )}
-      <Field label="이름" hint="처음 들어올 때 쓴 이름을 똑같이 쓰면 이어서 할 수 있어요.">
-        {nameInput}
-      </Field>
+      <FloatField label="이름" hint="처음 들어올 때 쓴 이름을 똑같이 쓰면 이어서 할 수 있어요." value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" maxLength={20} required />
       {error ? <Notice tone="bad">{error}</Notice> : null}
       <Button type="submit" variant="primary" className="w-full" loading={loading}>
         들어가기
