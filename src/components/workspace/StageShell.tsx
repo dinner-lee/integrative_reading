@@ -82,9 +82,12 @@ export function StageShell({
                 <ArrowLeft size={18} />
               </Link>
             ) : null}
-            <Logo size={44} />
+            {/* 로고는 헤더 높이(44px)의 60%, 수업명은 글자 로고와 같은 글꼴 */}
+            <div className="flex h-11 shrink-0 items-center">
+              <Logo size={26} />
+            </div>
             <div className="flex h-11 min-w-0 items-center gap-2">
-              <p className="truncate text-xl font-bold leading-none tracking-tight">{title}</p>
+              <p className="brand truncate text-[22px] leading-none">{title}</p>
               {badge ? <div className="flex items-center gap-1">{badge}</div> : null}
             </div>
           </div>
