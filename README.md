@@ -50,7 +50,7 @@ Apple의 WWDC 디자인 원칙(응답성, 직접 조작, 중단 가능한 스프
 - **재질**: 상단 크롬은 반투명 재질로 떠 있고 내용이 그 아래로 스크롤됩니다. 1px 구분선 대신 스크롤했을 때만 번지는 가장자리 효과를 씁니다. `prefers-reduced-transparency`·`prefers-contrast`에서는 불투명하게 바뀝니다.
 - **피드백**: 버튼은 누르는 순간 반응합니다. 되돌릴 수 있는 삭제(자료)는 확인 창 대신 "되돌리기" 토스트, 되돌릴 수 없는 일(학급·모둠 삭제)만 대화상자로 묻습니다. 브라우저 기본 `confirm/prompt/alert`는 쓰지 않습니다.
 - **타이포그래피**: 시스템 서체를 먼저 쓰고(Apple 기기는 San Francisco·Apple SD Gothic Neo), 그 밖에는 자체 제공 Pretendard를 씁니다. 큰 글자는 자간을 조이고 작은 글자는 살짝 벌립니다.
-- **로고**: 따옴표 두 쌍 모양의 SVG(`public/logo-black.svg`·`logo-white.svg`, 앱 아이콘은 `src/app/icon.svg`)를 `Logo` 컴포넌트가 밝은 모드엔 검정, 어두운 모드엔 흰색으로 바꿔 보여 줍니다(CSS `.logo-light`/`.logo-dark`). 글자 로고 "엮어 쓰기"는 Cafe24 PRO UP(눈누 CDN, `.brand`)이며 글자 높이를 아이콘 높이에 맞춥니다. 각 단계의 제목(`SectionTitle`의 h1, `.stage-title`)은 고운바탕 700(눈누 CDN)을 씁니다.
+- **로고**: 따옴표 두 쌍 모양의 SVG(`public/logo-black.svg`·`logo-white.svg`, 앱 아이콘은 `src/app/icon.svg`)를 `Logo` 컴포넌트가 밝은 모드엔 검정, 어두운 모드엔 흰색으로 바꿔 보여 줍니다(CSS `.logo-light`/`.logo-dark`). 글자 로고 "엮어 쓰기"는 Cafe24 PRO UP(눈누 CDN, `.brand`)이며 글자 높이를 아이콘 높이에 맞춥니다. 각 단계의 제목(`SectionTitle`의 h1, `.stage-title`)은 고운바탕 700(눈누 CDN)을 쓰고, 제목과 안내 문구는 바탕보다 살짝 밝은 채움 사각형(`bg-panel`, 테두리·그림자 없음, 1.5rem 모서리) 안에 둡니다.
 - **단순함**: 분석 조건은 자주 쓰는 것(방법·묶음 수·품사·자료)을 먼저 보이고, 불용어 편집·최소 등장 수·낱말 단위는 "자세한 조건" 아래에 둡니다.
 
 ## 구성

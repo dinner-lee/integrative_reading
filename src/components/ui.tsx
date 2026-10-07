@@ -312,9 +312,10 @@ export function Empty({ title, children, icon }: { title: string; children?: Rea
 }
 
 /** 단계(화면) 제목 */
+/** 단계 제목 띠: 바탕보다 살짝 밝은 채움 사각형(테두리·그림자 없음) 안에 제목(고운바탕)과 안내 문구 */
 export function SectionTitle({ title, desc, actions }: { title: string; desc?: ReactNode; actions?: ReactNode }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-3 rounded-[var(--radius-card)] bg-panel px-6 py-5 sm:px-7">
       <div>
         <h1 className="stage-title text-[26px] leading-tight">{title}</h1>
         {desc ? <p className="mt-1 max-w-[65ch] text-sm text-ink-3">{desc}</p> : null}
