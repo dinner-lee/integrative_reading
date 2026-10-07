@@ -1,4 +1,12 @@
 @import "tailwindcss";
+
+/* 브랜드 글꼴 (눈누, Cafe24 PRO UP) */
+@font-face {
+  font-family: "Cafe24ProUp";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2507-1@1.0/Cafe24PROUP.woff2") format("woff2");
+  font-weight: normal;
+  font-display: swap;
+}
 @import "@liveblocks/react-ui/styles.css";
 @import "@liveblocks/react-tiptap/styles.css";
 
@@ -256,6 +264,32 @@ h3 {
     inset 0 1px 0 var(--material-edge),
     var(--shadow);
 }
+/* 브랜드 글자 로고 */
+.brand {
+  font-family: "Cafe24ProUp", var(--font-sans);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* 로고: 밝은 모드 검정, 어두운 모드 흰색 */
+.logo-dark {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .logo-light {
+    display: none;
+  }
+  :root:not([data-theme="light"]) .logo-dark {
+    display: inline;
+  }
+}
+:root[data-theme="dark"] .logo-light {
+  display: none;
+}
+:root[data-theme="dark"] .logo-dark {
+  display: inline;
+}
+
 /* 알약 막대 (상단 stepper, 내비): 연회색 트랙, 선택된 항목은 흰 알약 */
 .pill-bar {
   border-radius: 9999px;

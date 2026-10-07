@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { JoinForm } from "@/components/JoinForm";
+import { Logo } from "@/components/Logo";
 import { db } from "@/lib/db";
 
 // 초대 코드가 주소에 들어 있으므로 검색에 노출하지 않는다
@@ -18,9 +18,7 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
       <div className="w-full max-w-sm card p-7 sm:p-8">
         {classroom && !classroom.archived ? (
           <>
-            <p className="flex items-center gap-2 text-sm font-semibold">
-              <Image src="/logo.png" alt="" width={28} height={28} className="h-7 w-7 rounded-[8px]" /> 엮어 쓰기
-            </p>
+            <Logo size={28} wordmark />
             <h1 className="mt-1 text-xl font-bold">{classroom.name}</h1>
             <p className="mb-5 mt-1 text-sm text-ink-3">이름을 쓰고 들어가세요.</p>
             <JoinForm initialCode={code.toUpperCase()} />

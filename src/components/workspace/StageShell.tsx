@@ -3,11 +3,11 @@
 import { useUpdateMyPresence } from "@liveblocks/react/suspense";
 import { ArrowLeft, Lock } from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { track } from "@/lib/client/logger";
 import { STAGES, type StageKey } from "@/lib/stages";
+import { Logo } from "../Logo";
 import { springs } from "../motion";
 import { SettingsMenu } from "../SettingsMenu";
 import { Badge, clsx } from "../ui";
@@ -82,7 +82,7 @@ export function StageShell({
                 <ArrowLeft size={18} />
               </Link>
             ) : null}
-            <Image src="/logo.png" alt="" width={44} height={44} className="h-11 w-11 shrink-0 rounded-xl" priority />
+            <Logo size={44} />
             <div className="flex h-11 min-w-0 items-center gap-2">
               <p className="truncate text-xl font-bold leading-none tracking-tight">{title}</p>
               {badge ? <div className="flex items-center gap-1">{badge}</div> : null}

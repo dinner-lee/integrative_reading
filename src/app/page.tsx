@@ -1,8 +1,8 @@
 import { ArrowUpRight, Shapes } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { JoinForm } from "@/components/JoinForm";
 import { LandingPreview } from "@/components/landing/Preview";
+import { Logo } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { STAGES } from "@/lib/stages";
 
@@ -16,9 +16,8 @@ export default function Home() {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-20">
         <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <Link href="/" className="pill-bar flex h-11 items-center gap-2 pl-1.5 pr-4 text-[15px] font-semibold">
-            <Image src="/logo.png" alt="" width={32} height={32} className="h-8 w-8 rounded-[9px]" priority />
-            엮어 쓰기
+          <Link href="/" className="pill-bar flex h-11 items-center pl-2 pr-4">
+            <Logo size={30} wordmark />
           </Link>
           <nav className="pill-bar flex h-11 items-center gap-1 p-1" aria-label="주 메뉴">
             <a href="#stages" className="pressable hidden rounded-full px-3.5 text-sm text-ink-2 hover:text-ink sm:block">
