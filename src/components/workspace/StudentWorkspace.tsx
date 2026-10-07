@@ -84,18 +84,18 @@ export function StudentWorkspace() {
               <div className="min-w-0">
                 <p className="truncate text-[13px] text-ink-3">{me.classroom.name}</p>
                 <p className="truncate text-sm font-bold">
-                  {me.group.name} · {me.student.name}
+                  {me.group.name}, {me.student.name}
                 </p>
               </div>
               <div className="ml-auto flex items-center gap-1">
                 {me.classroom.allowPeerView && others.length ? (
                   <details className="relative">
-                    <summary className="flex h-8 cursor-pointer list-none items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-ink-2 hover:bg-[#efede6]">
+                    <summary className="flex h-8 cursor-pointer list-none items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-ink-2 hover:bg-paper-2">
                       <Eye size={15} /> <span className="max-sm:hidden">다른 모둠</span>
                     </summary>
                     <div className="absolute right-0 z-30 mt-1 w-48 rounded-xl border border-line bg-surface p-1 shadow-lg">
                       {others.map((g) => (
-                        <Link key={g.id} href={`/workspace/peek/${g.id}`} className="block rounded-lg px-3 py-2 text-sm hover:bg-[#f6f5f0]">
+                        <Link key={g.id} href={`/workspace/peek/${g.id}`} className="block rounded-lg px-3 py-2 text-sm hover:bg-surface-2">
                           {g.name} <span className="text-xs text-ink-3">자료 {g.materials}</span>
                         </Link>
                       ))}

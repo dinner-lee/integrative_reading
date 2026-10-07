@@ -22,12 +22,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={clsx(
-        "inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-colors select-none",
+        "inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-[color,background-color,transform] select-none active:scale-[0.98]",
         "disabled:cursor-not-allowed disabled:opacity-50",
         size === "sm" ? "h-8 px-2.5 text-[13px]" : "h-10 px-4 text-sm",
-        variant === "primary" && "bg-accent text-white hover:bg-[#2449c6] active:bg-[#1d3ba3]",
-        variant === "secondary" && "border border-line-strong bg-surface text-ink hover:bg-[#f1efe9] active:bg-[#e9e6de]",
-        variant === "ghost" && "text-ink-2 hover:bg-[#efede6] active:bg-[#e6e3da]",
+        variant === "primary" && "bg-accent text-on-accent hover:bg-accent-hover active:bg-accent-active",
+        variant === "secondary" && "border border-line-strong bg-surface text-ink hover:bg-paper-2 active:bg-paper-3",
+        variant === "ghost" && "text-ink-2 hover:bg-paper-2 active:bg-paper-3",
         variant === "danger" && "border border-bad/30 bg-surface text-bad hover:bg-bad-soft",
         className,
       )}
@@ -54,7 +54,7 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
       ref={ref}
       className={clsx(
         "h-10 w-full rounded-lg border border-line-strong bg-surface px-3 text-[15px] text-ink placeholder:text-ink-3",
-        "focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:bg-[#f1efe9]",
+        "focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:bg-paper-2",
         className,
       )}
       {...rest}
@@ -71,7 +71,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
       ref={ref}
       className={clsx(
         "w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-[15px] leading-relaxed text-ink placeholder:text-ink-3",
-        "focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:bg-[#f1efe9]",
+        "focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:bg-paper-2",
         className,
       )}
       {...rest}
@@ -97,8 +97,8 @@ export function Badge({ children, tone = "neutral", className }: { children: Rea
   return (
     <span
       className={clsx(
-        "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium whitespace-nowrap",
-        tone === "neutral" && "bg-[#efede6] text-ink-2",
+        "inline-flex items-center gap-1 rounded-lg px-1.5 py-0.5 text-xs font-medium whitespace-nowrap",
+        tone === "neutral" && "bg-paper-2 text-ink-2",
         tone === "accent" && "bg-accent-soft text-accent",
         tone === "ok" && "bg-ok-soft text-ok",
         tone === "warn" && "bg-warn-soft text-warn",
@@ -125,8 +125,8 @@ export function Notice({ children, tone = "neutral", className }: { children: Re
       role={tone === "bad" ? "alert" : undefined}
       className={clsx(
         "rounded-lg px-3 py-2.5 text-sm leading-relaxed",
-        tone === "neutral" && "bg-[#efede6] text-ink-2",
-        tone === "warn" && "bg-warn-soft text-[#7a5212]",
+        tone === "neutral" && "bg-paper-2 text-ink-2",
+        tone === "warn" && "bg-warn-soft text-warn-ink",
         tone === "bad" && "bg-bad-soft text-bad",
         tone === "ok" && "bg-ok-soft text-ok",
         className,
@@ -163,7 +163,7 @@ export function Modal({
       onClose={onClose}
       onCancel={onClose}
       className={clsx(
-        "m-auto max-h-[90dvh] w-[calc(100%-2rem)] rounded-2xl border border-line bg-surface p-0 text-ink shadow-2xl backdrop:bg-black/30",
+        "m-auto max-h-[90dvh] w-[calc(100%-2rem)] rounded-2xl border border-line bg-surface p-0 text-ink shadow-card backdrop:bg-black/40",
         wide ? "max-w-4xl" : "max-w-xl",
       )}
     >
@@ -171,7 +171,7 @@ export function Modal({
         <div className="flex max-h-[90dvh] flex-col">
           <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
             <h2 className="text-base font-bold">{title}</h2>
-            <button onClick={onClose} className="rounded-md p-1 text-ink-3 hover:bg-[#efede6] hover:text-ink" aria-label="닫기">
+            <button onClick={onClose} className="rounded-lg p-1 text-ink-3 hover:bg-paper-2 hover:text-ink" aria-label="닫기">
               <X size={18} />
             </button>
           </div>
@@ -218,7 +218,7 @@ export function Segmented<T extends string>({
   disabled?: boolean;
 }) {
   return (
-    <div role="radiogroup" className="inline-flex rounded-lg bg-[#ebe9e2] p-0.5">
+    <div role="radiogroup" className="inline-flex rounded-lg bg-paper-2 p-0.5">
       {options.map((o) => (
         <button
           key={o.value}
@@ -228,7 +228,7 @@ export function Segmented<T extends string>({
           disabled={disabled}
           onClick={() => onChange(o.value)}
           className={clsx(
-            "rounded-md font-medium transition-colors disabled:cursor-not-allowed",
+            "rounded-lg font-medium transition-colors disabled:cursor-not-allowed",
             size === "sm" ? "px-2.5 py-1 text-[13px]" : "px-3.5 py-1.5 text-sm",
             value === o.value ? "bg-surface text-ink shadow-sm" : "text-ink-2 hover:text-ink",
           )}
@@ -240,8 +240,4 @@ export function Segmented<T extends string>({
   );
 }
 
-/** 묶음 색 (분석 결과·보드 공통) */
-export const CLUSTER_COLORS = ["#2f5bea", "#e4572e", "#1b998b", "#c77d00", "#8e44ad", "#d6336c", "#2d6a4f", "#5f6c7b", "#0081a7", "#a0522d", "#6d597a", "#3d5a80"];
-export function clusterColor(i: number) {
-  return CLUSTER_COLORS[((i % CLUSTER_COLORS.length) + CLUSTER_COLORS.length) % CLUSTER_COLORS.length];
-}
+export { CLUSTER_COLORS, clusterColor } from "@/lib/colors";

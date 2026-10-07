@@ -1,5 +1,9 @@
+import type { Metadata } from "next";
 import { JoinForm } from "@/components/JoinForm";
 import { db } from "@/lib/db";
+
+// 초대 코드가 주소에 들어 있으므로 검색에 노출하지 않는다
+export const metadata: Metadata = { title: "학급 입장", robots: { index: false, follow: false } };
 
 export default async function JoinPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
@@ -10,7 +14,7 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-4 py-10">
-      <div className="w-full max-w-sm rounded-2xl border border-line bg-surface p-6 shadow-sm sm:p-7">
+      <div className="w-full max-w-sm rounded-xl border border-line bg-surface p-6 shadow-card sm:p-7">
         {classroom && !classroom.archived ? (
           <>
             <p className="text-sm font-semibold text-accent">엮어 쓰기</p>

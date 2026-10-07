@@ -63,7 +63,7 @@ export function PeerViewer({ groupId, initialStage }: { groupId: string; initial
           initialStage={initialStage}
           header={
             <div className="flex items-center gap-2">
-              <Link href="/workspace" className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm text-ink-2 hover:bg-[#efede6]">
+              <Link href="/workspace" className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm text-ink-2 hover:bg-paper-2">
                 <ArrowLeft size={15} /> 우리 모둠
               </Link>
               <p className="truncate text-sm font-bold">{info.group.name} 둘러보기</p>
@@ -105,7 +105,7 @@ export function TeacherGroupViewer({ groupId, teacher }: { groupId: string; teac
           hideStages={["reflect"]}
           header={
             <div className="flex items-center gap-2">
-              <Link href={`/teacher/c/${info.classroom.id}`} className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm text-ink-2 hover:bg-[#efede6]">
+              <Link href={`/teacher/c/${info.classroom.id}`} className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm text-ink-2 hover:bg-paper-2">
                 <ArrowLeft size={15} /> {info.classroom.name}
               </Link>
               <p className="truncate text-sm font-bold">{info.group.name}</p>

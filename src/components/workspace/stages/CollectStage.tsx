@@ -52,7 +52,7 @@ export function CollectStage() {
       {materials ? (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-ink-2">
-            모둠 자료 <b className="text-ink">{materials.length}</b>개 · 온라인 {onlineCount} · 오프라인 {materials.length - onlineCount}
+            모둠 자료 <b className="text-ink">{materials.length}</b>개 (온라인 {onlineCount}, 오프라인 {materials.length - onlineCount})
           </p>
           {canEdit ? (
             <Segmented
@@ -92,12 +92,12 @@ export function CollectStage() {
                 {m.title}
               </button>
               <p className="mt-1 text-[13px] text-ink-3">
-                {[m.source, m.publishedAt].filter(Boolean).join(" · ") || "출처 정보 없음"}
+                {[m.source, m.publishedAt].filter(Boolean).join(", ") || "출처 정보 없음"}
               </p>
               <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-ink-2">{m.content}</p>
               <div className="mt-auto flex items-center justify-between pt-3 text-[13px] text-ink-3">
                 <span>
-                  {m.author?.name ?? "—"} · {m.content.length.toLocaleString()}자
+                  {m.author?.name ?? "이름 없음"}, {m.content.length.toLocaleString()}자
                 </span>
                 {canEdit ? (
                   <span className="flex gap-1">

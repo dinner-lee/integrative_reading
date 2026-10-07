@@ -124,7 +124,7 @@ export function OrganizeStage() {
                               className={clsx(
                                 "flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm",
                                 canEdit && "cursor-grab",
-                                n ? "border-line bg-[#f6f5f0]" : "border-line-strong bg-surface",
+                                n ? "border-line bg-surface-2" : "border-line-strong bg-surface",
                               )}
                             >
                               <button onClick={() => setViewing(m)} className="min-w-0 flex-1 truncate text-left hover:text-accent">
@@ -264,7 +264,7 @@ function SectionCard({
           className={clsx(
             "h-9 rounded-lg border px-2 text-sm font-bold",
             s.role === "intro" && "border-accent/30 bg-accent-soft text-accent",
-            s.role === "body" && "border-line-strong bg-[#f1efe9] text-ink",
+            s.role === "body" && "border-line-strong bg-paper-2 text-ink",
             s.role === "conclusion" && "border-ok/30 bg-ok-soft text-ok",
           )}
           aria-label="개요 위치"
@@ -321,7 +321,7 @@ function SectionCard({
             {s.materialIds.map((id, j) => {
               const m = byId.get(id);
               return (
-                <li key={id} className="flex items-center gap-2 rounded-lg bg-[#f6f5f0] px-2.5 py-1.5 text-sm">
+                <li key={id} className="flex items-center gap-2 rounded-lg bg-surface-2 px-2.5 py-1.5 text-sm">
                   <span className="text-xs tabular-nums text-ink-3">{j + 1}</span>
                   <button onClick={() => m && onOpen(m)} className="min-w-0 flex-1 truncate text-left hover:text-accent">
                     {m?.title ?? "지워진 자료"}
@@ -368,7 +368,7 @@ function SectionCard({
         ) : null}
       </div>
       {talk ? (
-        <div className="border-t border-line bg-[#fbfaf7] px-4 py-3">
+        <div className="border-t border-line bg-surface-2 px-4 py-3">
           <Discussion stage="organize" target={s.id} placeholder="이 칸에 어떤 자료를 어떤 순서로 쓸지 의견을 남겨요" />
         </div>
       ) : null}

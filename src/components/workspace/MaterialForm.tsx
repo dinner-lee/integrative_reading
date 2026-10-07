@@ -150,7 +150,7 @@ export function MaterialForm({ material, onSaved, onCancel }: { material?: Mater
               onClick={() => set("mediaType", m.key)}
               className={clsx(
                 "rounded-full border px-3 py-1 text-sm transition-colors",
-                f.mediaType === m.key ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong text-ink-2 hover:bg-[#f1efe9]",
+                f.mediaType === m.key ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong text-ink-2 hover:bg-paper-2",
               )}
             >
               {m.label}

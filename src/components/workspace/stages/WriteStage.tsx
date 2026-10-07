@@ -47,7 +47,7 @@ export function WriteStage() {
       <div className="flex min-h-[calc(100dvh-120px)]">
         <aside
           className={clsx(
-            "shrink-0 border-r border-line bg-[#fbfaf7] transition-[width]",
+            "shrink-0 border-r border-line bg-surface-2 transition-[width]",
             sidebar ? "w-[300px] max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-30 max-md:shadow-xl" : "w-0 overflow-hidden",
           )}
         >
@@ -73,7 +73,7 @@ export function WriteStage() {
                       }}
                       className={clsx(
                         "rounded-full px-3 py-1 text-sm",
-                        t.key === tab?.key ? "bg-ink font-semibold text-white" : "bg-[#efede6] text-ink-2 hover:bg-[#e6e3da]",
+                        t.key === tab?.key ? "bg-ink font-semibold text-paper" : "bg-paper-2 text-ink-2 hover:bg-paper-3",
                       )}
                     >
                       {t.label}

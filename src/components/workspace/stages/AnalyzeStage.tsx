@@ -30,7 +30,7 @@ export function describeParams(r: Pick<RunSummary, "method" | "params" | "materi
     `자료 ${r.materialIds.length}`,
   ]
     .filter(Boolean)
-    .join(" · ");
+    .join(", ");
 }
 
 export function AnalyzeStage({ onGoNext }: { onGoNext?: () => void }) {
@@ -243,7 +243,10 @@ export function AnalyzeStage({ onGoNext }: { onGoNext?: () => void }) {
                       {board?.runId === run.id ? <Badge tone="ok">내용 생성하기에 쓰는 결과</Badge> : null}
                     </div>
                     <p className="mt-0.5 text-[13px] text-ink-3">
-                      {describeParams(run)} · {run.createdBy?.name ?? "—"} · {new Date(run.createdAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}
+                      {describeParams(run)}
+                      <span className="ml-2">
+                        {run.createdBy?.name ?? "이름 없음"}, {new Date(run.createdAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
                     </p>
                   </div>
                   {canEdit && viewer.role === "student" ? (
@@ -323,7 +326,7 @@ function RunHistory({
                     onClick={() => onCompare(r.id)}
                     title="지금 결과와 비교"
                     aria-pressed={r.id === compareWith}
-                    className={clsx("rounded p-1 hover:bg-[#efede6]", r.id === compareWith ? "text-warn" : "text-ink-3")}
+                    className={clsx("rounded-lg p-1 hover:bg-paper-2", r.id === compareWith ? "text-warn" : "text-ink-3")}
                   >
                     <GitCompare size={15} />
                   </button>
@@ -356,7 +359,7 @@ function RunNote({ run, canEdit }: { run: RunFull; canEdit: boolean }) {
   return (
     <div className="mt-3">
       <label className="mb-1 block text-[13px] font-semibold text-ink-2">
-        해석 메모 <span className="font-normal text-ink-3">— 조건을 바꾸니 무엇이 달라졌나요? 결과가 글의 목적과 맞나요?</span>
+        해석 메모 <span className="font-normal text-ink-3">(조건을 바꾸니 무엇이 달라졌나요? 결과가 글의 목적과 맞나요?)</span>
       </label>
       {canEdit ? (
         <>
@@ -395,7 +398,7 @@ function Compare({ a, b, materials }: { a: RunFull; b: RunFull; materials: Mater
       <div className="border-b border-line bg-warn-soft/50 px-4 py-2.5">
         <h3 className="font-bold">두 결과 비교</h3>
         <p className="text-[13px] text-ink-2">
-          <b>A</b> {describeParams(a)} / <b>B</b> {describeParams(b)} — 함께 묶인 짝이 달라진 자료 {moved.size}개
+          <b>A</b> {describeParams(a)} / <b>B</b> {describeParams(b)}. 함께 묶인 짝이 달라진 자료 {moved.size}개
         </p>
       </div>
       <div className="overflow-x-auto">
@@ -464,7 +467,7 @@ function PreviewModal({ open, onClose, cond, materials }: { open: boolean; onClo
               onClick={() => setId(x.id)}
               className={clsx(
                 "max-w-[16rem] truncate rounded-full border px-3 py-1 text-[13px]",
-                x.id === current ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong text-ink-2 hover:bg-[#f1efe9]",
+                x.id === current ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong text-ink-2 hover:bg-paper-2",
               )}
             >
               {x.title}

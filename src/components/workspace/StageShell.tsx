@@ -5,6 +5,7 @@ import { Lock } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { track } from "@/lib/client/logger";
 import { STAGES, type StageKey } from "@/lib/stages";
+import { ThemeToggle } from "../ThemeToggle";
 import { clsx } from "../ui";
 import { useRoomCtx } from "./context";
 import { PresenceBar } from "./Presence";
@@ -62,6 +63,7 @@ export function StageShell({
       <header className="sticky top-0 z-20 border-b border-line bg-paper/95 backdrop-blur">
         <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
           <div className="min-w-0 flex-1">{header}</div>
+          <ThemeToggle className="max-sm:hidden" />
           <PresenceBar />
         </div>
       </header>
@@ -79,10 +81,10 @@ export function StageShell({
                   title={open ? s.desc : "선생님이 아직 열지 않은 단계예요"}
                   className={clsx(
                     "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors",
-                    active ? "bg-ink font-semibold text-white" : open ? "text-ink-2 hover:bg-[#efede6]" : "cursor-not-allowed text-ink-3/70",
+                    active ? "bg-ink font-semibold text-paper" : open ? "text-ink-2 hover:bg-paper-2" : "cursor-not-allowed text-ink-3/70",
                   )}
                 >
-                  <span className={clsx("text-xs tabular-nums", active ? "text-white/70" : "text-ink-3")}>{i + 1}</span>
+                  <span className={clsx("text-xs tabular-nums", active ? "text-paper/70" : "text-ink-3")}>{i + 1}</span>
                   {s.label}
                   {!open ? <Lock size={12} /> : null}
                 </button>

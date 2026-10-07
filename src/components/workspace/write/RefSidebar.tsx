@@ -200,7 +200,7 @@ function MaterialItem({
   }
 
   return (
-    <div className={clsx("rounded-md border text-sm", open ? "border-line-strong bg-surface" : "border-transparent")}>
+    <div className={clsx("rounded-lg border text-sm", open ? "border-line-strong bg-surface" : "border-transparent")}>
       <div className="flex items-center gap-1.5 px-1.5 py-1">
         <button onClick={() => setOpen((v) => !v)} className="text-ink-3" aria-expanded={open} aria-label="펼치기">
           {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -219,11 +219,11 @@ function MaterialItem({
       {open ? (
         <div className="space-y-2 px-2.5 pb-2.5">
           <p className="text-xs text-ink-3">
-            {m.isOnline ? "온라인" : "오프라인"} · {mediaLabel(m.mediaType)}
-            {m.source ? ` · ${m.source}` : ""}
+            {m.isOnline ? "온라인" : "오프라인"} {mediaLabel(m.mediaType)}
+            {m.source ? `, ${m.source}` : ""}
           </p>
           {reason ? <p className="text-xs text-ink-2">근거: {reason}</p> : null}
-          <div ref={bodyRef} className="max-h-56 overflow-y-auto whitespace-pre-wrap rounded bg-[#fbfaf7] p-2 text-[13px] leading-relaxed text-ink-2">
+          <div ref={bodyRef} className="max-h-56 overflow-y-auto whitespace-pre-wrap rounded-lg bg-surface-2 p-2 text-[13px] leading-relaxed text-ink-2">
             {m.content}
           </div>
           {onInsert ? (

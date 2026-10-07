@@ -8,7 +8,7 @@ import type { Material, Morpheme, RunResult } from "../types";
 
 export function Think({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex gap-2 rounded-lg border border-[#efdcae] bg-warn-soft/60 px-3 py-2.5 text-sm leading-relaxed text-[#6b4b12]">
+    <div className="flex gap-2 rounded-lg border border-warn-line bg-warn-soft/60 px-3 py-2.5 text-sm leading-relaxed text-warn-ink">
       <Lightbulb size={16} className="mt-0.5 shrink-0" />
       <div>
         <b>생각해 보기 · </b>
@@ -112,7 +112,7 @@ function Clusters({ result, open, onAddStopword }: { result: RunResult; open: (i
               {c.terms.slice(0, 8).map((t) => (
                 <li key={t.term} className="group flex items-center gap-2 text-sm">
                   <span className="w-24 shrink-0 truncate font-medium">{t.term}</span>
-                  <span className="h-2 flex-1 rounded-full bg-[#efede6]">
+                  <span className="h-2 flex-1 rounded-full bg-paper-2">
                     <span className="block h-2 rounded-full" style={{ width: `${(t.weight / maxW) * 100}%`, background: clusterColor(c.id) }} />
                   </span>
                   <span className="w-12 text-right text-xs tabular-nums text-ink-3">{t.weight.toFixed(3)}</span>
@@ -157,7 +157,7 @@ function Clusters({ result, open, onAddStopword }: { result: RunResult; open: (i
 
 function TopicBar({ dist }: { dist: number[] }) {
   return (
-    <span className="mt-1 flex h-2 w-full overflow-hidden rounded-full bg-[#efede6]" aria-label={dist.map((v, i) => `주제${i + 1} ${Math.round(v * 100)}%`).join(", ")}>
+    <span className="mt-1 flex h-2 w-full overflow-hidden rounded-full bg-paper-2" aria-label={dist.map((v, i) => `주제${i + 1} ${Math.round(v * 100)}%`).join(", ")}>
       {dist.map((v, i) => (
         <span key={i} style={{ width: `${v * 100}%`, background: clusterColor(i) }} title={`주제 ${i + 1}: ${Math.round(v * 100)}%`} />
       ))}
@@ -196,7 +196,7 @@ function KChart({ result }: { result: RunResult }) {
           <div key={c.k} className="flex flex-1 flex-col items-center gap-1">
             <span className="text-[11px] tabular-nums text-ink-3">{c.silhouette.toFixed(2)}</span>
             <span
-              className={clsx("w-full rounded-t", c.k === result.k ? "bg-accent" : "bg-[#d8d5cb]")}
+              className={clsx("w-full rounded-t-lg", c.k === result.k ? "bg-accent" : "bg-paper-3")}
               style={{ height: `${Math.max(4, (Math.max(c.silhouette, 0) / max) * 80)}px` }}
             />
             <span className="text-xs font-medium">{c.k}개</span>
@@ -222,8 +222,8 @@ function MapView({ result, open }: { result: RunResult; open: (id: string) => vo
       </Think>
       <div className="overflow-x-auto rounded-xl border border-line bg-surface">
         <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full min-w-[480px]" role="img" aria-label="자료 지도">
-          <line x1={W / 2} x2={W / 2} y1={pad / 2} y2={H - pad / 2} stroke="#eceae3" />
-          <line y1={H / 2} y2={H / 2} x1={pad / 2} x2={W - pad / 2} stroke="#eceae3" />
+          <line x1={W / 2} x2={W / 2} y1={pad / 2} y2={H - pad / 2} stroke="var(--line)" />
+          <line y1={H / 2} y2={H / 2} x1={pad / 2} x2={W - pad / 2} stroke="var(--line)" />
           {result.docs.map((d) => {
             const cx = x(d.coords[0]);
             const cy = y(d.coords[1]);
@@ -239,7 +239,7 @@ function MapView({ result, open }: { result: RunResult; open: (id: string) => vo
                 onKeyDown={(e) => e.key === "Enter" && open(d.id)}
               >
                 <circle cx={cx} cy={cy} r={active ? 10 : 8} fill={clusterColor(d.cluster)} fillOpacity={0.85} stroke="#fff" strokeWidth={2} />
-                <text x={cx + 12} y={cy + 4} fontSize={active ? 13 : 11.5} fill="#2b2b2e" fontWeight={active ? 700 : 500}>
+                <text x={cx + 12} y={cy + 4} fontSize={active ? 13 : 11.5} fill="var(--ink)" fontWeight={active ? 700 : 500}>
                   {d.title.length > 16 && !active ? d.title.slice(0, 15) + "…" : d.title}
                 </text>
               </g>
@@ -284,7 +284,7 @@ function TermTable({ result, open }: { result: RunResult; open: (id: string) => 
             onClick={() => setDocId(x.id)}
             className={clsx(
               "max-w-[16rem] truncate rounded-full border px-3 py-1 text-[13px]",
-              x.id === d.id ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong text-ink-2 hover:bg-[#f1efe9]",
+              x.id === d.id ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong text-ink-2 hover:bg-paper-2",
             )}
           >
             {x.title}
@@ -293,7 +293,7 @@ function TermTable({ result, open }: { result: RunResult; open: (id: string) => 
       </div>
       <div className="overflow-x-auto rounded-xl border border-line bg-surface">
         <table className="w-full min-w-[420px] text-sm">
-          <thead className="bg-[#f6f5f0] text-left text-[13px] text-ink-2">
+          <thead className="bg-surface-2 text-left text-[13px] text-ink-2">
             <tr>
               <th className="px-3 py-2 font-semibold">낱말</th>
               <th className="px-3 py-2 text-right font-semibold">TF(횟수)</th>
@@ -309,7 +309,7 @@ function TermTable({ result, open }: { result: RunResult; open: (id: string) => 
                 {isTfidf ? <td className="px-3 py-1.5 text-right tabular-nums">{t.idf?.toFixed(2)}</td> : null}
                 <td className="px-3 py-1.5">
                   <span className="flex items-center gap-2">
-                    <span className="h-2 flex-1 rounded-full bg-[#efede6]">
+                    <span className="h-2 flex-1 rounded-full bg-paper-2">
                       <span className="block h-2 rounded-full bg-accent" style={{ width: `${(t.weight / max) * 100}%` }} />
                     </span>
                     <span className="w-12 text-right text-xs tabular-nums text-ink-3">{isTfidf ? t.weight.toFixed(3) : t.weight}</span>
@@ -359,10 +359,10 @@ function Similarity({ result }: { result: RunResult }) {
                     key={j}
                     onMouseEnter={() => setCell([i, j])}
                     onMouseLeave={() => setCell(null)}
-                    className="h-9 w-9 rounded text-center tabular-nums"
+                    className="h-9 w-9 rounded-lg text-center tabular-nums"
                     style={{
-                      background: i === j ? "#efede6" : `rgba(47, 91, 234, ${Math.max(0, Math.min(1, v)) * 0.9})`,
-                      color: v > 0.55 && i !== j ? "#fff" : "#4a4a4f",
+                      background: i === j ? "var(--paper-2)" : `rgba(47, 91, 234, ${Math.max(0, Math.min(1, v)) * 0.9})`,
+                      color: v > 0.55 && i !== j ? "#fff" : "var(--ink-2)",
                     }}
                   >
                     {i === j ? "" : v.toFixed(2)}
@@ -412,8 +412,8 @@ export function MorphemeStrip({ morphemes }: { morphemes: Morpheme[] }) {
           key={i}
           title={TAG_LABEL[m.tag] ?? m.tag}
           className={clsx(
-            "rounded px-1.5 py-1",
-            m.kept ? "bg-accent-soft font-semibold text-accent" : "bg-[#efede6] text-ink-3 line-through decoration-ink-3/40",
+            "rounded-lg px-1.5 py-1",
+            m.kept ? "bg-accent-soft font-semibold text-accent" : "bg-paper-2 text-ink-3 line-through decoration-ink-3/40",
           )}
         >
           {m.form}
@@ -441,7 +441,7 @@ function PreprocessResult({ result }: { result: RunResult }) {
             onClick={() => setId(x.id)}
             className={clsx(
               "max-w-[16rem] truncate rounded-full border px-3 py-1 text-[13px]",
-              x.id === p.id ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong text-ink-2 hover:bg-[#f1efe9]",
+              x.id === p.id ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong text-ink-2 hover:bg-paper-2",
             )}
           >
             {x.title}
@@ -470,7 +470,7 @@ export function PreprocessStats({ stats: s }: { stats: RunResult["preprocessing"
   return (
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
       {items.map(([label, v], i) => (
-        <div key={label} className={clsx("rounded-lg px-3 py-2", i === items.length - 1 ? "bg-accent-soft text-accent" : "bg-[#f1efe9]")}>
+        <div key={label} className={clsx("rounded-lg px-3 py-2", i === items.length - 1 ? "bg-accent-soft text-accent" : "bg-paper-2")}>
           <p className="text-[11px] text-ink-3">{label}</p>
           <p className="text-lg font-bold tabular-nums">{v.toLocaleString()}</p>
         </div>

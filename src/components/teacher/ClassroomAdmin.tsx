@@ -48,7 +48,7 @@ const EXPORTS = [
 ];
 
 function ago(iso: string | null) {
-  if (!iso) return "—";
+  if (!iso) return "아직 없음";
   const s = (Date.now() - new Date(iso).getTime()) / 1000;
   if (s < 60) return "방금";
   if (s < 3600) return `${Math.floor(s / 60)}분 전`;
@@ -163,12 +163,12 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
         <Card className="p-5">
           <h2 className="mb-3 font-bold">학생 초대</h2>
           <div className="flex items-center gap-4">
-            <div className="rounded-xl bg-[#f1efe9] px-4 py-3 text-center">
+            <div className="rounded-xl bg-paper-2 px-4 py-3 text-center">
               <p className="text-[11px] text-ink-3">초대 코드</p>
               <p className="font-mono text-3xl font-bold tracking-[0.18em]">{c.inviteCode}</p>
             </div>
             <div className="min-w-0 flex-1 space-y-2">
-              <div className="flex items-center gap-2 rounded-lg border border-line bg-[#fbfaf7] px-3 py-2 text-sm">
+              <div className="flex items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm">
                 <span className="min-w-0 flex-1 truncate font-mono text-[13px]">{link}</span>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -207,7 +207,7 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
                   onClick={() => patch({ openStages: on ? c.openStages.filter((x) => x !== s.key) : [...c.openStages, s.key] })}
                   className={clsx(
                     "rounded-lg border px-3 py-1.5 text-sm transition-colors",
-                    on ? "border-ink bg-ink font-semibold text-white" : "border-line-strong bg-surface text-ink-2 hover:bg-[#f1efe9]",
+                    on ? "border-ink bg-ink font-semibold text-paper" : "border-line-strong bg-surface text-ink-2 hover:bg-paper-2",
                   )}
                 >
                   {i + 1}. {s.label}
@@ -272,7 +272,7 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
               <li key={e.type}>
                 <a
                   href={`/api/teacher/classrooms/${classroomId}/export?type=${e.type}`}
-                  className="flex h-full items-start gap-2 rounded-lg border border-line px-3 py-2 hover:bg-[#f6f5f0]"
+                  className="flex h-full items-start gap-2 rounded-lg border border-line px-3 py-2 hover:bg-surface-2"
                 >
                   <Download size={15} className="mt-0.5 shrink-0 text-ink-3" />
                   <span>
@@ -297,7 +297,7 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
         </div>
         <Card className="overflow-x-auto">
           <table className="w-full min-w-[860px] text-sm">
-            <thead className="bg-[#f6f5f0] text-left text-[13px] text-ink-2">
+            <thead className="bg-surface-2 text-left text-[13px] text-ink-2">
               <tr>
                 <th className="px-3 py-2 font-semibold">모둠</th>
                 <th className="px-3 py-2 font-semibold">화제</th>
@@ -318,10 +318,10 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
                     <p className="font-semibold">{g.name}</p>
                     <p className="text-xs text-ink-3">{g.students.map((s) => s.name).join(", ") || "학생 없음"}</p>
                   </td>
-                  <td className="max-w-[12rem] truncate px-3 py-2">{g.topic || <span className="text-ink-3">—</span>}</td>
+                  <td className="max-w-[12rem] truncate px-3 py-2">{g.topic || <span className="text-ink-3">아직 없음</span>}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{g.materials}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{g.runs}</td>
-                  <td className="px-3 py-2 tabular-nums">{g.clusters ? `${g.namedClusters}/${g.clusters}` : "—"}</td>
+                  <td className="px-3 py-2 tabular-nums">{g.clusters ? `${g.namedClusters}/${g.clusters}` : "아직 없음"}</td>
                   <td className="px-3 py-2">
                     <span className="flex gap-1">
                       <Badge tone="ok">{g.decisions.selected}</Badge>
@@ -330,7 +330,7 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
                     </span>
                   </td>
                   <td className="px-3 py-2 tabular-nums">
-                    {g.outlineSections}칸 · 자료 {g.outlinePlaced}
+                    {g.outlineSections}칸, 자료 {g.outlinePlaced}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{g.draftChars.toLocaleString()}자</td>
                   <td className="px-3 py-2 text-ink-2">{ago(g.lastActivity)}</td>
@@ -445,7 +445,7 @@ function StudentChip({ s, groups, action }: { s: Student; groups: Group[]; actio
       <select
         value={s.groupId ?? ""}
         onChange={(e) => action(() => api(`/api/teacher/students/${s.id}`, { method: "PATCH", json: { groupId: e.target.value || null } }))}
-        className="h-7 rounded border border-line-strong bg-surface px-1 text-[13px]"
+        className="h-7 rounded-lg border border-line-strong bg-surface px-1 text-[13px]"
         aria-label={`${s.name} 모둠`}
       >
         <option value="">모둠 없음</option>

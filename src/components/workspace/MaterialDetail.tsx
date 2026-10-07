@@ -64,7 +64,7 @@ export function MaterialDetail({ material, onClose, stage }: { material: Materia
               </>
             ) : null}
             <dt className="text-ink-3">올린 사람</dt>
-            <dd>{material.author?.name ?? "—"}</dd>
+            <dd>{material.author?.name ?? "없음"}</dd>
           </dl>
           {material.note ? (
             <div className="rounded-lg bg-accent-soft/60 px-3 py-2 text-sm">
@@ -72,7 +72,7 @@ export function MaterialDetail({ material, onClose, stage }: { material: Materia
               {material.note}
             </div>
           ) : null}
-          <div className="max-h-[50vh] overflow-y-auto whitespace-pre-wrap rounded-lg border border-line bg-[#fbfaf7] p-4 text-[15px] leading-relaxed">
+          <div className="max-h-[50vh] overflow-y-auto whitespace-pre-wrap rounded-lg border border-line bg-surface-2 p-4 text-[15px] leading-relaxed">
             {material.content}
           </div>
           <p className="text-[13px] text-ink-3">출처 표기: {citation(material)}</p>

@@ -59,7 +59,7 @@ export function ReflectStage() {
               <Link
                 key={g.id}
                 href={`/workspace/peek/${g.id}?stage=write`}
-                className="rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-sm font-medium hover:bg-[#f1efe9]"
+                className="rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-sm font-medium hover:bg-paper-2"
               >
                 {g.name}
               </Link>

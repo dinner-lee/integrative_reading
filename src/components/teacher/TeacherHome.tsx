@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/client/api";
+import { ThemeToggle } from "../ThemeToggle";
 import { Badge, Button, Card, Empty, Field, Input, Modal, Notice, Spinner } from "../ui";
 
 type Classroom = {
@@ -49,7 +50,8 @@ export function TeacherHome({ teacher }: { teacher: { name: string; email: strin
           <p className="text-sm font-semibold text-accent">엮어 쓰기 · 교사</p>
           <h1 className="text-2xl font-bold">{teacher.name} 선생님의 학급</h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Button variant="primary" onClick={() => setCreating(true)}>
             <Plus size={16} /> 학급 만들기
           </Button>
@@ -85,7 +87,7 @@ export function TeacherHome({ teacher }: { teacher: { name: string; email: strin
                     {c.archived ? <Badge>보관됨</Badge> : <Badge tone="accent">{c.inviteCode}</Badge>}
                   </div>
                   <p className="mt-1 text-sm text-ink-3">
-                    모둠 {c._count.groups} · 학생 {c._count.students} · {new Date(c.createdAt).toLocaleDateString("ko-KR")}
+                    모둠 {c._count.groups}, 학생 {c._count.students}. {new Date(c.createdAt).toLocaleDateString("ko-KR")} 만듦
                   </p>
                 </Card>
               </Link>

@@ -154,7 +154,7 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
                   </button>
                   {canEdit ? (
                     <select
-                      className="ml-1 rounded border border-line-strong bg-surface text-xs"
+                      className="ml-1 rounded-lg border border-line-strong bg-surface text-xs"
                       value=""
                       onChange={(e) => e.target.value && moveMaterial(m.id, e.target.value)}
                       aria-label={`${m.title} 묶음 고르기`}
@@ -299,7 +299,7 @@ function ClusterCard({
             <p className="flex flex-wrap items-center gap-1 text-[13px] text-ink-3">
               <span>분석이 뽑은 낱말</span>
               {c.keywords.map((k) => (
-                <span key={k} className="rounded bg-[#efede6] px-1.5 py-0.5 text-ink-2">
+                <span key={k} className="rounded-lg bg-paper-2 px-1.5 py-0.5 text-ink-2">
                   {k}
                 </span>
               ))}
@@ -340,7 +340,7 @@ function ClusterCard({
       </div>
 
       {talk ? (
-        <div className="border-t border-line bg-[#fbfaf7] px-4 py-3">
+        <div className="border-t border-line bg-surface-2 px-4 py-3">
           <Discussion stage="generate" target={c.id} placeholder="이 묶음의 이름이나 자료 선택에 대해 의견을 남겨요" />
         </div>
       ) : null}
@@ -410,15 +410,15 @@ function MaterialRow({
         onDragStart();
       }}
       onDragEnd={onDragEnd}
-      className={clsx("px-4 py-3", status === "excluded" && "bg-[#faf9f6]")}
+      className={clsx("px-4 py-3", status === "excluded" && "bg-surface-2")}
     >
       <div className="flex flex-wrap items-center gap-2">
         {canEdit ? <GripVertical size={15} className="shrink-0 cursor-grab text-ink-3" aria-hidden /> : null}
         <button onClick={onOpen} className={clsx("min-w-0 flex-1 text-left text-sm font-semibold hover:text-accent", status === "excluded" && "text-ink-3 line-through")}>
           {m.title}
           <span className="ml-2 text-xs font-normal text-ink-3">
-            {m.isOnline ? "온라인" : "오프라인"} · {mediaLabel(m.mediaType)}
-            {m.source ? ` · ${m.source}` : ""}
+            {m.isOnline ? "온라인" : "오프라인"} {mediaLabel(m.mediaType)}
+            {m.source ? `, ${m.source}` : ""}
           </span>
         </button>
         <div className="flex items-center gap-1" role="radiogroup" aria-label="판단">
@@ -430,14 +430,14 @@ function MaterialRow({
               disabled={!canEdit}
               onClick={() => onDecision({ status: status === d.value ? "undecided" : d.value })}
               className={clsx(
-                "h-7 rounded-md border px-2.5 text-[13px] font-medium transition-colors disabled:cursor-default",
+                "h-7 rounded-lg border px-2.5 text-[13px] font-medium transition-colors disabled:cursor-default",
                 status === d.value
                   ? d.tone === "ok"
-                    ? "border-ok bg-ok text-white"
+                    ? "border-ok bg-ok text-on-accent"
                     : d.tone === "warn"
-                      ? "border-warn bg-warn text-white"
-                      : "border-bad bg-bad text-white"
-                  : "border-line-strong bg-surface text-ink-2 hover:bg-[#f1efe9]",
+                      ? "border-warn bg-warn text-on-accent"
+                      : "border-bad bg-bad text-on-accent"
+                  : "border-line-strong bg-surface text-ink-2 hover:bg-paper-2",
               )}
             >
               {d.label}
@@ -448,7 +448,7 @@ function MaterialRow({
               <select
                 value=""
                 onChange={(e) => e.target.value && onMove(e.target.value)}
-                className="h-7 w-7 cursor-pointer appearance-none rounded-md border border-line-strong bg-surface text-transparent"
+                className="h-7 w-7 cursor-pointer appearance-none rounded-lg border border-line-strong bg-surface text-transparent"
                 aria-label="다른 묶음으로 옮기기"
               >
                 <option value="">옮기기</option>
@@ -476,7 +476,7 @@ function MaterialRow({
               className={clsx("h-8 text-sm", !reason && "border-warn/60")}
             />
           ) : (
-            <p className="text-sm text-ink-2">근거: {reason || "—"}</p>
+            <p className="text-sm text-ink-2">근거: {reason || "아직 없음"}</p>
           )}
         </div>
       ) : null}

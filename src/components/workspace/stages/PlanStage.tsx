@@ -65,7 +65,7 @@ export function PlanStage() {
                   aria-pressed={plan?.format === f}
                   className={
                     "rounded-full border px-3 py-1 text-sm transition-colors disabled:cursor-not-allowed " +
-                    (plan?.format === f ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong bg-surface text-ink-2 hover:bg-[#f1efe9]")
+                    (plan?.format === f ? "border-accent bg-accent-soft font-semibold text-accent" : "border-line-strong bg-surface text-ink-2 hover:bg-paper-2")
                   }
                 >
                   {f}
@@ -102,7 +102,7 @@ export function PlanStage() {
                 .map((m) => {
                   const p = memberPlans?.[userKey("student", m.id)];
                   return (
-                    <li key={m.id} className="rounded-lg bg-[#f6f5f0] px-3 py-2.5 text-sm">
+                    <li key={m.id} className="rounded-lg bg-surface-2 px-3 py-2.5 text-sm">
                       <p className="font-semibold">{m.name}</p>
                       {p && (p.purpose || p.audience || p.questions) ? (
                         <dl className="mt-1 space-y-1 text-ink-2">

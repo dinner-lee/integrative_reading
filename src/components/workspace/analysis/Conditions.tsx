@@ -60,7 +60,7 @@ export function ConditionsPanel({
               key={m.key}
               className={clsx(
                 "flex cursor-pointer gap-2.5 rounded-lg border px-3 py-2",
-                value.method === m.key ? "border-accent bg-accent-soft/50" : "border-line hover:bg-[#f6f5f0]",
+                value.method === m.key ? "border-accent bg-accent-soft/50" : "border-line hover:bg-surface-2",
               )}
             >
               <input type="radio" name="method" className="mt-1 accent-[var(--accent)]" checked={value.method === m.key} onChange={() => set("method", m.key)} />
@@ -82,8 +82,8 @@ export function ConditionsPanel({
               onClick={() => setMin("k", k)}
               aria-pressed={value.mining.k === k}
               className={clsx(
-                "h-8 min-w-10 rounded-md border px-2 text-sm",
-                value.mining.k === k ? "border-accent bg-accent text-white" : "border-line-strong bg-surface hover:bg-[#f1efe9]",
+                "h-8 min-w-10 rounded-lg border px-2 text-sm",
+                value.mining.k === k ? "border-accent bg-accent text-on-accent" : "border-line-strong bg-surface hover:bg-paper-2",
               )}
             >
               {k ?? "자동"}
@@ -114,9 +114,9 @@ export function ConditionsPanel({
             <RotateCcw size={13} /> 기본값
           </button>
         </div>
-        <div className="flex max-h-32 flex-wrap gap-1 overflow-y-auto rounded-lg border border-line bg-[#fbfaf7] p-2">
+        <div className="flex max-h-32 flex-wrap gap-1 overflow-y-auto rounded-lg border border-line bg-surface-2 p-2">
           {value.preprocess.stopwords.map((w) => (
-            <span key={w} className="inline-flex items-center gap-0.5 rounded bg-surface px-1.5 py-0.5 text-[13px] ring-1 ring-line">
+            <span key={w} className="inline-flex items-center gap-0.5 rounded-lg bg-surface px-1.5 py-0.5 text-[13px] ring-1 ring-line">
               {w}
               <button
                 type="button"
@@ -185,7 +185,7 @@ export function ConditionsPanel({
         <ul className="max-h-48 space-y-0.5 overflow-y-auto rounded-lg border border-line p-1.5">
           {materials.map((m) => (
             <li key={m.id}>
-              <label className="flex cursor-pointer items-center gap-2 rounded px-1.5 py-1 text-sm hover:bg-[#f6f5f0]">
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1 text-sm hover:bg-surface-2">
                 <input
                   type="checkbox"
                   className="accent-[var(--accent)]"
