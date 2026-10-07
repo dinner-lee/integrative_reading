@@ -269,6 +269,25 @@ h3 {
     inset 0 1px 0 var(--material-edge),
     var(--shadow);
 }
+/* 단계 제목 글꼴 (눈누, 고운바탕) */
+@font-face {
+  font-family: "GounBatang";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/GowunBatang-Regular.woff") format("woff");
+  font-weight: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "GounBatang";
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2108@1.1/GowunBatang-Bold.woff") format("woff");
+  font-weight: 700;
+  font-display: swap;
+}
+.stage-title {
+  font-family: "GounBatang", var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+}
+
 /* 브랜드 글자 로고 */
 .brand {
   font-family: "Cafe24ProUp", var(--font-sans);
