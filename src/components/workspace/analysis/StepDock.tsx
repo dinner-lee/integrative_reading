@@ -18,7 +18,7 @@ export function StepDock<T extends string>({
 }: {
   value: T;
   onChange: (v: T) => void;
-  items: { key: T; label: string; icon: LucideIcon; disabled?: boolean }[];
+  items: { key: T; label: string; icon: LucideIcon; number?: number; disabled?: boolean }[];
   label: string;
 }) {
   return (
@@ -44,7 +44,21 @@ export function StepDock<T extends string>({
               )}
             >
               {on ? <motion.span layoutId="step-dock" className="absolute inset-0 rounded-[1.25rem] bg-paper-2" transition={springs.quick} aria-hidden /> : null}
-              <Icon size={22} strokeWidth={1.8} className="relative" aria-hidden />
+              <span className="relative">
+                <Icon size={22} strokeWidth={1.8} aria-hidden />
+                {it.number ? (
+                  // 아이콘 왼쪽 위의 작은 걸음 번호
+                  <span
+                    className={clsx(
+                      "absolute -left-2.5 -top-1.5 flex h-[15px] min-w-[15px] items-center justify-center rounded-full px-[3px] text-[9.5px] font-bold leading-none tabular-nums",
+                      on ? "bg-ink text-surface" : "bg-paper-3 text-ink-2",
+                    )}
+                    aria-hidden
+                  >
+                    {it.number}
+                  </span>
+                ) : null}
+              </span>
               <span className="relative whitespace-nowrap leading-none">{it.label}</span>
             </button>
           );

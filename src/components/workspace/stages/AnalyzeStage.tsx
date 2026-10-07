@@ -201,7 +201,7 @@ export function AnalyzeStage() {
 
   const canStep = (k: StepKey) => (k === "result" || k === "compare" ? hasRuns : k === "name" ? true : canEdit);
   // 읽기 전용(교사·다른 모둠)은 조건 걸음을 숨기고, 아직 분석이 없으면 결과·비교는 비활성
-  const dockItems = STEPS.filter((s) => canEdit || s.key === "result" || s.key === "compare" || s.key === "name").map((s) => ({ key: s.key, label: s.label, icon: s.icon, disabled: !canStep(s.key) }));
+  const dockItems = STEPS.map((s, i) => ({ key: s.key, label: s.label, icon: s.icon, number: i + 1, disabled: !canStep(s.key) })).filter((s) => canEdit || s.key === "result" || s.key === "compare" || s.key === "name");
 
   return (
     <div className="mx-auto max-w-6xl pb-40 sm:pb-28">
