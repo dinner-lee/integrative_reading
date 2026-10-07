@@ -129,7 +129,7 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
   const clusterById = new Map(clusters.map((c) => [c.id, c]));
 
   return (
-    <div>
+    <div className="panel px-6 py-6 sm:px-8 sm:py-7">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold tracking-tight">묶음에 이름 붙이고 자료 고르기</h2>

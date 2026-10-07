@@ -286,22 +286,24 @@ export function AnalyzeStage() {
         ) : (
           <>
             <div className="grid gap-10 xl:grid-cols-[380px_1fr]">
-              <RunHistory
-                runs={runs!}
-                selected={run.id}
-                compareWith={compareWith}
-                adoptedId={board?.runId ?? null}
-                onSelect={(id) => {
-                  setSelected(id);
-                  if (compareWith === id) setCompareWith(null);
-                  track("analysis.select_run", { runId: id }, { stage: "analyze" });
-                }}
-                onCompare={(id) => {
-                  setCompareWith(id === compareWith ? null : id);
-                  if (id !== compareWith) track("analysis.compare", { a: run.id, b: id }, { stage: "analyze" });
-                }}
-              />
-              <div className="min-w-0">
+              <div className="panel self-start p-5">
+                <RunHistory
+                  runs={runs!}
+                  selected={run.id}
+                  compareWith={compareWith}
+                  adoptedId={board?.runId ?? null}
+                  onSelect={(id) => {
+                    setSelected(id);
+                    if (compareWith === id) setCompareWith(null);
+                    track("analysis.select_run", { runId: id }, { stage: "analyze" });
+                  }}
+                  onCompare={(id) => {
+                    setCompareWith(id === compareWith ? null : id);
+                    if (id !== compareWith) track("analysis.compare", { a: run.id, b: id }, { stage: "analyze" });
+                  }}
+                />
+              </div>
+              <div className="panel min-w-0 px-6 py-6 sm:px-8 sm:py-7">
                 <Sections>
                   <Section title="두 결과 비교" desc={other ? "묶음 번호는 분석할 때마다 새로 붙어요. 어떤 자료끼리 함께 묶였는지를 비교하세요." : "왼쪽 기록에서 비교 단추를 누르면 지금 결과와 나란히 볼 수 있어요."}>
                     {other ? <Compare a={run} b={other} materials={materials} /> : <Empty title="비교할 결과를 골라 주세요" />}

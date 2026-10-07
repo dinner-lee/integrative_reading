@@ -41,7 +41,7 @@ export function PreprocessPanel({ value, onChange, materials, defaultStopwords, 
   }
 
   return (
-    <fieldset disabled={disabled} className="min-w-0">
+    <fieldset disabled={disabled} className="panel min-w-0 px-6 py-6 sm:px-8 sm:py-7">
       <Sections>
         <Section
           title={`분석에 넣을 자료 ${value.materialIds.length}/${materials.length}`}
@@ -129,7 +129,7 @@ export function ClusterPanel({ value, onChange, methods, disabled }: PanelProps 
   const advancedSummary = [value.mining.minDf > 1 ? `최소 ${value.mining.minDf}자료` : "최소 1자료", value.mining.ngram === 2 ? "두 낱말까지" : "한 낱말"].join(", ");
 
   return (
-    <fieldset disabled={disabled} className="min-w-0">
+    <fieldset disabled={disabled} className="panel min-w-0 px-6 py-6 sm:px-8 sm:py-7">
       <Sections>
         <Section title="묶는 방법" desc="방법마다 자료를 숫자로 바꾸는 방식이 달라요. 바꿔 가며 결과를 비교해 보세요.">
           <div className="grid gap-2 lg:grid-cols-3">
