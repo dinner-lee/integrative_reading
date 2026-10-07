@@ -50,7 +50,7 @@ export function ReflectStage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <SectionTitle title="고쳐쓰기 · 성찰" desc="다른 모둠의 글을 읽어 보고, 우리 모둠의 글을 고친 뒤 자료를 고른 과정을 혼자 돌아봐요." />
+      <SectionTitle title="고쳐쓰기와 성찰" desc="다른 모둠 글을 읽고, 자료를 고른 과정을 돌아봐요." />
       {me?.classroom.allowPeerView && others.length ? (
         <Card className="mb-5 p-4">
           <h3 className="mb-2 font-bold">다른 모둠 글 읽기</h3>

@@ -74,8 +74,8 @@ export function ConditionsPanel({
             <label
               key={m.key}
               className={clsx(
-                "pressable flex cursor-pointer gap-2.5 rounded-2xl border px-3 py-2.5",
-                value.method === m.key ? "border-ink/60 bg-paper-2/70" : "border-line hover:bg-surface-2",
+                "pressable flex cursor-pointer gap-2.5 rounded-[var(--field-radius)] border px-3 py-2.5",
+                value.method === m.key ? "border-accent bg-accent-soft/60" : "border-line hover:bg-surface-2",
               )}
             >
               <input type="radio" name="method" className="mt-1 accent-[var(--accent)]" checked={value.method === m.key} onChange={() => set("method", m.key)} />
@@ -99,7 +99,7 @@ export function ConditionsPanel({
               onClick={() => setMin("k", k)}
               aria-pressed={value.mining.k === k}
               className={clsx(
-                "pressable h-8 min-w-10 rounded-full border px-3 text-sm",
+                "pressable h-8 min-w-10 rounded-[var(--radius)] border px-3 text-sm",
                 value.mining.k === k ? "border-primary bg-primary text-on-primary" : "border-line bg-surface hover:bg-paper-2",
               )}
             >

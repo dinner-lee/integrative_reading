@@ -43,7 +43,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   ];
 
   return (
-    <div role="radiogroup" aria-label="화면 모드" className={clsx("inline-flex h-9 items-center rounded-full border border-line bg-surface p-0.5", className)}>
+    <div role="radiogroup" aria-label="화면 모드" className={clsx("inline-flex h-10 items-center rounded-full bg-paper-2 p-1", className)}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -54,8 +54,8 @@ export function ThemeToggle({ className }: { className?: string }) {
           title={o.label}
           onClick={() => apply(o.value)}
           className={clsx(
-            "pressable flex h-7 w-7 items-center justify-center rounded-full",
-            theme === o.value ? "bg-paper-2 text-ink" : "text-ink-3 hover:text-ink",
+            "pressable flex h-8 w-8 items-center justify-center rounded-full",
+            theme === o.value ? "pill-thumb text-ink" : "text-ink-3 hover:text-ink",
           )}
         >
           {o.icon}

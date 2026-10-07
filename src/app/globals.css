@@ -9,104 +9,115 @@
   채움 단계: paper-2(호버·칩) < paper-3(눌림·막대 바탕)
 */
 :root {
-  --paper: #f8f8f7;
-  --paper-2: #efefed;
-  --paper-3: #e3e3e0;
-  --surface: #ffffff;
-  --surface-2: #fafaf9;
-  --ink: #141415;
-  --ink-2: #55555a;
-  --ink-3: #8a8a90;
-  --line: #e9e9e6;
-  --line-strong: #d6d6d2;
-  /* 기본 버튼은 먹색 알약 (어두운 모드에서는 흰 알약) */
-  --primary: #141415;
-  --on-primary: #ffffff;
-  --accent: #2f5bea;
-  --accent-hover: #2449c6;
-  --accent-active: #1d3ba3;
-  --accent-soft: #e8eefe;
-  --ok: #1f8a5b;
-  --ok-soft: #e3f4ec;
-  --warn: #946112;
-  --warn-soft: #fbf1dc;
-  --warn-ink: #6b4b12;
-  --warn-line: #efdcae;
-  --bad: #c2410c;
-  --bad-soft: #fde9df;
-  --on-accent: #ffffff;
-  --shadow: 0 18px 50px -24px rgb(20 20 21 / 0.22);
-  /* 재질: 떠 있는 크롬(얇음) / 패널·시트(두꺼움) */
-  --material-thin: rgb(255 255 255 / 0.78);
-  --material-thick: rgb(255 255 255 / 0.94);
-  --material-edge: rgb(255 255 255 / 0.6);
+  /* HeroUI theme.css (밝은 모드) 를 옮긴 값. 색상각 253.83 = 파랑 계열 중성색 */
+  --paper: oklch(97.02% 0.0015 253.83); /* background */
+  --paper-2: oklch(94% 0.0015 253.83); /* default */
+  --paper-3: oklch(90% 0.0015 253.83);
+  --surface: oklch(100% 0.0008 253.83); /* surface */
+  --surface-2: oklch(95.24% 0.0012 253.83); /* surface-secondary */
+  --ink: oklch(21.03% 0.0015 253.83); /* foreground */
+  --ink-2: oklch(40% 0.003 253.83);
+  --ink-3: oklch(55.17% 0.003 253.83); /* muted */
+  --line: oklch(90% 0.0015 253.83); /* border */
+  --line-strong: oklch(85% 0.0015 253.83);
+  --accent: oklch(62.04% 0.195 253.83); /* accent */
+  --accent-hover: oklch(57% 0.195 253.83);
+  --accent-active: oklch(52% 0.19 253.83);
+  --accent-soft: oklch(94% 0.03 253.83);
+  --on-accent: oklch(99.11% 0 0); /* accent-foreground */
+  --primary: var(--accent);
+  --on-primary: var(--on-accent);
+  --focus: oklch(62.04% 0.195 253.83);
+  --field-bg: oklch(100% 0.0008 253.83); /* field-background */
+  --field-border: transparent; /* field-border */
+  --segment: oklch(100% 0.0015 253.83);
+  --ok: oklch(50% 0.16 150.81); /* success (글자용으로 어둡게) */
+  --ok-soft: oklch(94% 0.06 150.81);
+  --warn: oklch(58% 0.14 72.33); /* warning (글자용으로 어둡게) */
+  --warn-soft: oklch(95% 0.06 72.33);
+  --warn-ink: oklch(42% 0.12 72.33);
+  --warn-line: oklch(88% 0.1 72.33);
+  --bad: oklch(58% 0.21 25.74); /* danger */
+  --bad-soft: oklch(95% 0.03 25.74);
+  --shadow: 0 18px 50px -24px oklch(21% 0.0015 253.83 / 0.25);
+  --material-thin: oklch(100% 0 0 / 0.75);
+  --material-thick: oklch(100% 0.0004 253.83 / 0.95); /* overlay */
+  --material-edge: oklch(100% 0 0 / 0.6);
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #0f0f10;
-    --paper-2: #202022;
-    --paper-3: #2c2c2f;
-    --surface: #18181a;
-    --surface-2: #1c1c1e;
-    --ink: #f2f2f2;
-    --ink-2: #b4b4b8;
-    --ink-3: #85858b;
-    --line: #28282b;
-    --line-strong: #39393d;
-    --primary: #f2f2f2;
-    --on-primary: #141415;
-    --accent: #7a99ff;
-    --accent-hover: #93acff;
-    --accent-active: #6686f0;
-    --accent-soft: #1d2a52;
-    --ok: #4fc58d;
-    --ok-soft: #10301f;
-    --warn: #e0a83f;
-    --warn-soft: #352810;
-    --warn-ink: #f0cf8a;
-    --warn-line: #4a3814;
-    --bad: #ff8f62;
-    --bad-soft: #3b1d12;
-    --on-accent: #0f1530;
-    --shadow: 0 10px 30px -12px rgb(0 0 0 / 0.6);
-    --material-thin: rgb(24 24 26 / 0.78);
-    --material-thick: rgb(28 28 31 / 0.94);
-    --material-edge: rgb(255 255 255 / 0.08);
+    --paper: oklch(12% 0.0015 253.83);
+    --paper-2: oklch(27.4% 0.0015 253.83);
+    --paper-3: oklch(33% 0.0015 253.83);
+    --surface: oklch(21.03% 0.003 253.83);
+    --surface-2: oklch(25.7% 0.0023 253.83);
+    --ink: oklch(99.11% 0.0015 253.83);
+    --ink-2: oklch(82% 0.003 253.83);
+    --ink-3: oklch(70.5% 0.003 253.83);
+    --line: oklch(28% 0.0015 253.83);
+    --line-strong: oklch(36% 0.0015 253.83);
+    --accent: oklch(62.04% 0.195 253.83);
+    --accent-hover: oklch(67% 0.19 253.83);
+    --accent-active: oklch(58% 0.19 253.83);
+    --accent-soft: oklch(30% 0.08 253.83);
+    --on-accent: oklch(99.11% 0 0);
+    --primary: var(--accent);
+    --on-primary: var(--on-accent);
+    --focus: oklch(62.04% 0.195 253.83);
+    --field-bg: oklch(21.03% 0.003 253.83);
+    --field-border: oklch(28% 0.0015 253.83);
+    --segment: oklch(39.64% 0.0015 253.83);
+    --ok: oklch(73.29% 0.1941 150.81);
+    --ok-soft: oklch(28% 0.06 150.81);
+    --warn: oklch(82.03% 0.1392 76.34);
+    --warn-soft: oklch(28% 0.06 76.34);
+    --warn-ink: oklch(88% 0.1 76.34);
+    --warn-line: oklch(40% 0.1 76.34);
+    --bad: oklch(66% 0.19 24.63);
+    --bad-soft: oklch(28% 0.07 24.63);
+    --shadow: 0 18px 50px -24px oklch(0% 0 0 / 0.6);
+    --material-thin: oklch(21% 0.003 253.83 / 0.75);
+    --material-thick: oklch(21.03% 0.003 253.83 / 0.95);
+    --material-edge: oklch(100% 0 0 / 0.08);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #0f0f10;
-  --paper-2: #202022;
-  --paper-3: #2c2c2f;
-  --surface: #18181a;
-  --surface-2: #1c1c1e;
-  --ink: #f2f2f2;
-  --ink-2: #b4b4b8;
-  --ink-3: #85858b;
-  --line: #28282b;
-  --line-strong: #39393d;
-  --primary: #f2f2f2;
-  --on-primary: #141415;
-  --accent: #7a99ff;
-  --accent-hover: #93acff;
-  --accent-active: #6686f0;
-  --accent-soft: #1d2a52;
-  --ok: #4fc58d;
-  --ok-soft: #10301f;
-  --warn: #e0a83f;
-  --warn-soft: #352810;
-  --warn-ink: #f0cf8a;
-  --warn-line: #4a3814;
-  --bad: #ff8f62;
-  --bad-soft: #3b1d12;
---on-accent: #0f1530;
-  --shadow: 0 10px 30px -12px rgb(0 0 0 / 0.6);
-  --material-thin: rgb(24 24 26 / 0.78);
-  --material-thick: rgb(28 28 31 / 0.94);
-  --material-edge: rgb(255 255 255 / 0.08);
+--paper: oklch(12% 0.0015 253.83);
+  --paper-2: oklch(27.4% 0.0015 253.83);
+  --paper-3: oklch(33% 0.0015 253.83);
+  --surface: oklch(21.03% 0.003 253.83);
+  --surface-2: oklch(25.7% 0.0023 253.83);
+  --ink: oklch(99.11% 0.0015 253.83);
+  --ink-2: oklch(82% 0.003 253.83);
+  --ink-3: oklch(70.5% 0.003 253.83);
+  --line: oklch(28% 0.0015 253.83);
+  --line-strong: oklch(36% 0.0015 253.83);
+  --accent: oklch(62.04% 0.195 253.83);
+  --accent-hover: oklch(67% 0.19 253.83);
+  --accent-active: oklch(58% 0.19 253.83);
+  --accent-soft: oklch(30% 0.08 253.83);
+  --on-accent: oklch(99.11% 0 0);
+  --primary: var(--accent);
+  --on-primary: var(--on-accent);
+  --focus: oklch(62.04% 0.195 253.83);
+  --field-bg: oklch(21.03% 0.003 253.83);
+  --field-border: oklch(28% 0.0015 253.83);
+  --segment: oklch(39.64% 0.0015 253.83);
+  --ok: oklch(73.29% 0.1941 150.81);
+  --ok-soft: oklch(28% 0.06 150.81);
+  --warn: oklch(82.03% 0.1392 76.34);
+  --warn-soft: oklch(28% 0.06 76.34);
+  --warn-ink: oklch(88% 0.1 76.34);
+  --warn-line: oklch(40% 0.1 76.34);
+  --bad: oklch(66% 0.19 24.63);
+  --bad-soft: oklch(28% 0.07 24.63);
+  --shadow: 0 18px 50px -24px oklch(0% 0 0 / 0.6);
+  --material-thin: oklch(21% 0.003 253.83 / 0.75);
+  --material-thick: oklch(21.03% 0.003 253.83 / 0.95);
+  --material-edge: oklch(100% 0 0 / 0.08);
   color-scheme: dark;
 }
 
@@ -138,6 +149,10 @@
   --color-on-accent: var(--on-accent);
   --color-primary: var(--primary);
   --color-on-primary: var(--on-primary);
+  --color-field: var(--field-bg);
+  --color-field-border: var(--field-border);
+  --color-segment: var(--segment);
+  --color-focus: var(--focus);
   --color-ok: var(--ok);
   --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn);
@@ -148,9 +163,11 @@
   --color-bad-soft: var(--bad-soft);
   --shadow-card: var(--shadow);
   --font-sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard Variable", Pretendard, system-ui, "Noto Sans KR", sans-serif;
-  /* 모서리 규칙: 누르는 것(버튼·입력·칩)은 알약, 카드 1.25rem, 큰 패널·모달 1.75rem */
+  /* 모서리 규칙 (HeroUI, Radius Form Large): 버튼·칩·내비 알약, 입력 0.875rem, 카드 1.25rem, 패널·모달 1.5rem */
+  --radius: 9999px;
+  --field-radius: 0.875rem;
   --radius-card: 1.25rem;
-  --radius-panel: 1.75rem;
+  --radius-panel: 1.5rem;
 }
 
 html {
@@ -231,17 +248,16 @@ h3 {
     inset 0 1px 0 var(--material-edge),
     var(--shadow);
 }
-/* 알약 막대 (상단 stepper, 내비) */
+/* 알약 막대 (상단 stepper, 내비): 연회색 트랙, 선택된 항목은 흰 알약 */
 .pill-bar {
   border-radius: 9999px;
-  border: 1px solid var(--line);
-  background: var(--material-thin);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
+  background: var(--paper-2);
+}
+.pill-thumb {
+  background: var(--segment);
   box-shadow:
-    inset 0 1px 0 var(--material-edge),
-    0 1px 2px rgb(0 0 0 / 0.04),
-    0 12px 32px -20px rgb(0 0 0 / 0.25);
+    0 1px 2px oklch(0% 0 0 / 0.06),
+    0 2px 8px -4px oklch(0% 0 0 / 0.12);
 }
 /* 떠 있는 크롬이 내용과 만나는 자리: 1px 선 대신 스크롤했을 때만 번지는 가장자리 */
 .scroll-edge {
@@ -281,7 +297,6 @@ h3 {
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .pill-bar,
   .material-thin,
   .material-panel,
   .material-heavy {
@@ -303,7 +318,7 @@ h3 {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 

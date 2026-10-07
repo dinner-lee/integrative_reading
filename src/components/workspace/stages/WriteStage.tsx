@@ -135,7 +135,7 @@ export function WriteStage() {
                           }}
                           className={clsx("pressable relative rounded-full px-3 py-1 text-sm", on ? "font-semibold text-ink" : "text-ink-2 hover:text-ink")}
                         >
-                          {on ? <motion.span layoutId="doc-pill" className="absolute inset-0 rounded-full bg-surface shadow-sm" transition={springs.quick} aria-hidden /> : null}
+                          {on ? <motion.span layoutId="doc-pill" className="pill-thumb absolute inset-0 rounded-full" transition={springs.quick} aria-hidden /> : null}
                           <span className="relative">{t.label}</span>
                         </button>
                       );

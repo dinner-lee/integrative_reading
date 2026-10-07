@@ -294,6 +294,25 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
         </Card>
       </div>
 
+      {progress ? (
+        <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="학급 요약">
+          {[
+            { label: "학생", value: students.length, sub: `모둠 없음 ${unassigned.length}` },
+            { label: "수집 자료", value: progress.reduce((a, g) => a + g.materials, 0), sub: `모둠 ${groups.length}개` },
+            { label: "분석 실행", value: progress.reduce((a, g) => a + g.runs, 0), sub: `채택 ${progress.filter((g) => g.adoptedRun).length}모둠` },
+            { label: "선정한 자료", value: progress.reduce((a, g) => a + g.decisions.selected, 0), sub: `제외 ${progress.reduce((a, g) => a + g.decisions.excluded, 0)}` },
+          ].map((s) => (
+            <Card key={s.label} className="px-5 py-4">
+              <p className="text-sm text-ink-3">{s.label}</p>
+              <div className="mt-2 flex items-end justify-between gap-2">
+                <p className="text-3xl font-semibold tabular-nums tracking-tight">{s.value}</p>
+                <Badge>{s.sub}</Badge>
+              </div>
+            </Card>
+          ))}
+        </section>
+      ) : null}
+
       <section className="mt-8">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-bold">모둠 현황</h2>
@@ -303,7 +322,7 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
         </div>
         <Card className="overflow-x-auto">
           <table className="w-full min-w-[860px] text-sm">
-            <thead className="bg-surface-2 text-left text-[13px] text-ink-2">
+            <thead className="bg-surface-2 text-left text-[13px] text-ink-3">
               <tr>
                 <th className="px-3 py-2 font-semibold">모둠</th>
                 <th className="px-3 py-2 font-semibold">화제</th>

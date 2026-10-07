@@ -1,7 +1,7 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { MenuSection } from "../SettingsMenu";
+import { ThemeToggle } from "../ThemeToggle";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/client/api";
 import { setLogClassroom } from "@/lib/client/logger";
@@ -61,14 +61,27 @@ export function PeerViewer({ groupId, initialStage }: { groupId: string; initial
           openStages={me.classroom.openStages.filter((s) => s !== "reflect")}
           hideStages={["reflect"]}
           initialStage={initialStage}
-          header={
-            <div className="flex items-center gap-2">
-              <Link href="/workspace" className="pressable flex h-9 items-center gap-1 rounded-full border border-line bg-surface px-3 text-sm text-ink-2 hover:bg-paper-2">
-                <ArrowLeft size={15} /> 우리 모둠
-              </Link>
-              <p className="truncate text-sm font-bold">{info.group.name} 둘러보기</p>
+          title={info.classroom.name}
+          badge={
+            <>
+              <span className="text-[13px] text-ink-3">{info.group.name} 둘러보기</span>
               <Badge>읽기 전용</Badge>
-            </div>
+            </>
+          }
+          back={{ href: "/workspace", label: "우리 모둠으로" }}
+          settings={
+            <>
+              <MenuSection title="보고 있는 모둠">
+                <p className="px-1 py-1 text-sm">
+                  {info.group.name} <span className="text-ink-3">({info.members.map((m) => m.name).join(", ") || "학생 없음"})</span>
+                </p>
+              </MenuSection>
+              <MenuSection title="화면 모드">
+                <div className="px-1 py-1">
+                  <ThemeToggle />
+                </div>
+              </MenuSection>
+            </>
           }
         />
       </GroupRoom>
@@ -103,15 +116,26 @@ export function TeacherGroupViewer({ groupId, teacher }: { groupId: string; teac
         <StageShell
           openStages={STAGE_KEYS}
           hideStages={["reflect"]}
-          header={
-            <div className="flex items-center gap-2">
-              <Link href={`/teacher/c/${info.classroom.id}`} className="pressable flex h-9 items-center gap-1 rounded-full border border-line bg-surface px-3 text-sm text-ink-2 hover:bg-paper-2">
-                <ArrowLeft size={15} /> {info.classroom.name}
-              </Link>
-              <p className="truncate text-sm font-bold">{info.group.name}</p>
-              <span className="truncate text-[13px] text-ink-3">{info.members.map((m) => m.name).join(", ")}</span>
-              <Badge tone="accent">교사 보기 · 댓글 가능</Badge>
-            </div>
+          title={info.classroom.name}
+          badge={
+            <>
+              <span className="text-[13px] text-ink-3">{info.group.name}</span>
+              <Badge tone="accent">교사 보기</Badge>
+            </>
+          }
+          back={{ href: `/teacher/c/${info.classroom.id}`, label: "학급 관리로" }}
+          settings={
+            <>
+              <MenuSection title="모둠원">
+                <p className="px-1 py-1 text-sm">{info.members.map((m) => m.name).join(", ") || "학생 없음"}</p>
+                <p className="px-1 pb-1 text-[13px] text-ink-3">내용은 읽기 전용이고 댓글은 남길 수 있어요.</p>
+              </MenuSection>
+              <MenuSection title="화면 모드">
+                <div className="px-1 py-1">
+                  <ThemeToggle />
+                </div>
+              </MenuSection>
+            </>
           }
         />
       </GroupRoom>

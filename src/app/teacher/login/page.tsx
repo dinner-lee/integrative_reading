@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -30,7 +31,8 @@ export default function TeacherLogin() {
   return (
     <main className="flex min-h-dvh items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm rounded-[var(--radius-panel)] border border-line bg-surface p-7 shadow-card sm:p-8">
-        <Link href="/" className="text-sm font-semibold text-accent">
+        <Link href="/" className="flex items-center gap-2 text-sm font-semibold">
+          <Image src="/logo.png" alt="" width={28} height={28} className="h-7 w-7 rounded-[8px]" />
           엮어 쓰기
         </Link>
         <h1 className="mb-4 mt-1 text-xl font-bold">교사 화면</h1>

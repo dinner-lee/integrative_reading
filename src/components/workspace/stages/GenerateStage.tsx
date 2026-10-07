@@ -131,7 +131,7 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
     <div>
       <SectionTitle
         title="내용 생성하기"
-        desc="분석이 만든 묶음을 원문과 대조해 이름을 붙이고, 글에 쓸 순서대로 우선순위를 정해요. 자료마다 선정·보류·제외를 고르고 근거를 적어요."
+        desc="묶음에 이름을 붙이고, 자료마다 선정·보류·제외를 정해요."
         actions={
           canEdit && clusters.length ? (
             <Button onClick={addCluster}>

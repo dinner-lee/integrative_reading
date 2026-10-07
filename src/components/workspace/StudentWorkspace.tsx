@@ -1,12 +1,15 @@
 "use client";
 
-import { Eye, LogOut } from "lucide-react";
+import { Eye, LogOut, Users } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { api, ClientApiError } from "@/lib/client/api";
 import { track } from "@/lib/client/logger";
+import { MenuItem, MenuSection } from "../SettingsMenu";
+import { ThemeToggle } from "../ThemeToggle";
 import { Button, Card, Notice, Spinner } from "../ui";
+import { PresenceBar } from "./Presence";
 import { GroupRoom, LiveProviders } from "./LiveProviders";
 import { StageShell } from "./StageShell";
 import type { Me } from "./types";
@@ -79,33 +82,50 @@ export function StudentWorkspace() {
       >
         <StageShell
           openStages={me.classroom.openStages}
-          header={
-            <div className="flex items-center gap-2">
-              <div className="pill-bar flex h-10 min-w-0 items-center gap-2 pl-1.5 pr-3.5">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-on-primary">{me.group.name.replace(/모둠$/, "")}</span>
-                <span className="truncate text-sm font-semibold">{me.group.name}</span>
-                <span className="truncate text-[13px] text-ink-3 max-sm:hidden">{me.classroom.name}</span>
-              </div>
-              <div className="ml-auto flex items-center gap-1">
-                {me.classroom.allowPeerView && others.length ? (
-                  <details className="relative">
-                    <summary className="pressable flex h-9 cursor-pointer list-none items-center gap-1.5 rounded-full border border-line bg-surface px-3 text-[13px] font-medium text-ink-2 hover:bg-paper-2">
-                      <Eye size={15} /> <span className="max-sm:hidden">다른 모둠</span>
-                    </summary>
-                    <div className="material-panel absolute right-0 z-30 mt-1.5 w-52 rounded-2xl p-1.5">
-                      {others.map((g) => (
-                        <Link key={g.id} href={`/workspace/peek/${g.id}`} className="block rounded-xl px-3 py-2 text-sm hover:bg-paper-2">
-                          {g.name} <span className="text-xs text-ink-3">자료 {g.materials}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  </details>
-                ) : null}
-                <Button size="sm" variant="ghost" onClick={() => logout(router)} aria-label="나가기" className="h-9 w-9 px-0">
-                  <LogOut size={15} />
-                </Button>
-              </div>
-            </div>
+          title={me.classroom.name}
+          settings={
+            <>
+              <MenuSection>
+                <div className="flex items-center gap-3 px-1 py-1">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-on-primary">{me.student.name.slice(-2)}</span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">{me.student.name}</p>
+                    <p className="truncate text-[13px] text-ink-3">
+                      {me.group.name}, {me.classroom.name}
+                    </p>
+                  </div>
+                </div>
+              </MenuSection>
+              <MenuSection title="지금 함께 있는 사람">
+                <div className="flex items-center gap-2 px-1 py-1">
+                  <PresenceBar />
+                  <span className="text-[13px] text-ink-3">{me.members.map((m) => m.name).join(", ")}</span>
+                </div>
+              </MenuSection>
+              {me.classroom.allowPeerView && others.length ? (
+                <MenuSection title="다른 모둠 보기">
+                  {others.map((g) => (
+                    <Link key={g.id} href={`/workspace/peek/${g.id}`} className="pressable flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm hover:bg-paper-2">
+                      <Eye size={15} className="text-ink-3" />
+                      <span className="flex-1">{g.name}</span>
+                      <span className="flex items-center gap-1 text-xs text-ink-3">
+                        <Users size={12} /> {g.students}
+                      </span>
+                    </Link>
+                  ))}
+                </MenuSection>
+              ) : null}
+              <MenuSection title="화면 모드">
+                <div className="px-1 py-1">
+                  <ThemeToggle />
+                </div>
+              </MenuSection>
+              <MenuSection>
+                <MenuItem onClick={() => logout(router)} className="text-bad hover:bg-bad-soft">
+                  <LogOut size={15} /> 나가기
+                </MenuItem>
+              </MenuSection>
+            </>
           }
         />
       </GroupRoom>

@@ -188,7 +188,7 @@ export function AnalyzeStage({ onGoNext }: { onGoNext?: () => void }) {
     <div>
       <SectionTitle
         title="자료 분석하기"
-        desc="조건을 정해 자료를 묶어 보고, 조건을 바꿔 다시 묶어 결과를 비교해요. 계산 결과가 곧 정답은 아니에요. 원문과 대조하며 해석해요."
+        desc="조건을 바꿔 가며 자료를 묶어 보고 결과를 비교해요."
       />
       {error ? (
         <Notice tone="bad" className="mb-4">

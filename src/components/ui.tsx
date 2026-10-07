@@ -26,13 +26,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={clsx(
-        "pressable inline-flex items-center justify-center gap-1.5 rounded-full font-medium select-none",
+        "pressable inline-flex items-center justify-center gap-1.5 rounded-[var(--radius)] font-medium select-none",
         "disabled:cursor-not-allowed disabled:opacity-50",
-        size === "sm" ? "h-8 px-3 text-[13px]" : "h-11 px-5 text-sm",
-        variant === "primary" && "bg-primary text-on-primary hover:opacity-90",
-        variant === "secondary" && "border border-line bg-surface text-ink shadow-[0_1px_2px_rgb(0_0_0/0.04)] hover:bg-paper-2 active:bg-paper-3",
+        size === "sm" ? "h-8 px-3.5 text-[13px]" : "h-10 px-4 text-sm",
+        variant === "primary" && "bg-primary text-on-primary hover:bg-accent-hover active:bg-accent-active",
+        variant === "secondary" && "bg-paper-2 text-ink hover:bg-paper-3 active:bg-paper-3",
         variant === "ghost" && "text-ink-2 hover:bg-paper-2 active:bg-paper-3",
-        variant === "danger" && "border border-bad/30 bg-surface text-bad hover:bg-bad-soft",
+        variant === "danger" && "bg-bad-soft text-bad hover:bg-bad/15",
         className,
       )}
       {...rest}
@@ -57,8 +57,8 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
     <input
       ref={ref}
       className={clsx(
-        "h-11 w-full rounded-full border border-line bg-paper-2/60 px-4 text-[15px] text-ink placeholder:text-ink-3",
-        "focus:border-line-strong focus:bg-surface focus:outline-none focus:ring-4 focus:ring-ink/5 disabled:bg-paper-2",
+        "h-11 w-full rounded-[var(--field-radius)] border border-field-border bg-field px-3.5 text-[15px] text-ink shadow-[0_0_0_1px_var(--line)] placeholder:text-ink-3",
+        "focus:outline-none focus:shadow-[0_0_0_2px_var(--focus)] disabled:bg-paper-2",
         className,
       )}
       {...rest}
@@ -74,8 +74,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
     <textarea
       ref={ref}
       className={clsx(
-        "w-full rounded-2xl border border-line bg-paper-2/60 px-4 py-2.5 text-[15px] leading-relaxed text-ink placeholder:text-ink-3",
-        "focus:border-line-strong focus:bg-surface focus:outline-none focus:ring-4 focus:ring-ink/5 disabled:bg-paper-2",
+        "w-full rounded-[var(--field-radius)] border border-field-border bg-field px-3.5 py-2.5 text-[15px] leading-relaxed text-ink shadow-[0_0_0_1px_var(--line)] placeholder:text-ink-3",
+        "focus:outline-none focus:shadow-[0_0_0_2px_var(--focus)] disabled:bg-paper-2",
         className,
       )}
       {...rest}
@@ -121,7 +121,7 @@ export function Badge({ children, tone = "neutral", className }: { children: Rea
 
 export function Card({ children, className, ...rest }: { children: ReactNode; className?: string } & React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={clsx("rounded-[var(--radius-card)] border border-line bg-surface", className)} {...rest}>
+    <div className={clsx("rounded-[var(--radius-card)] border border-line/70 bg-surface shadow-[0_1px_2px_oklch(0%_0_0/0.03)]", className)} {...rest}>
       {children}
     </div>
   );
@@ -132,7 +132,7 @@ export function Notice({ children, tone = "neutral", className }: { children: Re
     <div
       role={tone === "bad" ? "alert" : undefined}
       className={clsx(
-        "rounded-2xl px-4 py-3 text-sm leading-relaxed",
+        "rounded-[var(--field-radius)] px-4 py-3 text-sm leading-relaxed",
         tone === "neutral" && "bg-paper-2 text-ink-2",
         tone === "warn" && "bg-warn-soft text-warn-ink",
         tone === "bad" && "bg-bad-soft text-bad",
@@ -260,7 +260,7 @@ export function Modal({
               <h2 id={titleId} className="text-base font-bold">
                 {title}
               </h2>
-              <button onClick={onClose} className="pressable rounded-full p-1.5 text-ink-3 hover:bg-paper-2 hover:text-ink" aria-label="닫기">
+              <button onClick={onClose} className="pressable flex h-9 w-9 items-center justify-center rounded-full bg-paper-2 text-ink-2 hover:bg-paper-3 hover:text-ink" aria-label="닫기">
                 <X size={18} />
               </button>
             </div>
@@ -311,7 +311,7 @@ export function Segmented<T extends string>({
 }) {
   const group = useId();
   return (
-    <div role="radiogroup" className="inline-flex rounded-full bg-paper-2 p-0.5">
+    <div role="radiogroup" className="inline-flex rounded-full bg-paper-2 p-1">
       {options.map((o) => {
         const active = value === o.value;
         return (
@@ -329,7 +329,7 @@ export function Segmented<T extends string>({
             )}
           >
             {active ? (
-              <motion.span layoutId={`seg-${group}`} className="absolute inset-0 rounded-full bg-surface shadow-sm" transition={springs.quick} aria-hidden />
+              <motion.span layoutId={`seg-${group}`} className="pill-thumb absolute inset-0 rounded-full" transition={springs.quick} aria-hidden />
             ) : null}
             <span className="relative">{o.label}</span>
           </button>

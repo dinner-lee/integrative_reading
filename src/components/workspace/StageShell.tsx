@@ -1,16 +1,17 @@
 "use client";
 
 import { useUpdateMyPresence } from "@liveblocks/react/suspense";
-import { BookOpen, Boxes, ChartScatter, ListTree, Lock, PenLine, Sparkles, Target } from "lucide-react";
+import { ArrowLeft, BookOpen, Boxes, ChartScatter, ListTree, Lock, PenLine, Sparkles, Target } from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
+import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { track } from "@/lib/client/logger";
 import { STAGES, type StageKey } from "@/lib/stages";
 import { springs } from "../motion";
-import { ThemeToggle } from "../ThemeToggle";
-import { clsx } from "../ui";
+import { SettingsMenu } from "../SettingsMenu";
+import { Badge, clsx } from "../ui";
 import { useRoomCtx } from "./context";
-import { PresenceBar } from "./Presence";
 import { AnalyzeStage } from "./stages/AnalyzeStage";
 import { CollectStage } from "./stages/CollectStage";
 import { GenerateStage } from "./stages/GenerateStage";
@@ -30,18 +31,28 @@ const ICONS: Record<StageKey, React.ComponentType<{ size?: number; strokeWidth?:
 };
 
 /**
- * 상단 크롬 + 단계 stepper + 단계 화면. 학생/둘러보기/교사 화면이 함께 쓴다.
- * stepper는 둥근 알약 막대 안에 아이콘+라벨로 들어가고, 선택 표시가 스프링으로 미끄러진다.
+ * 상단: 왼쪽 로고 + 수업 제목, 가운데 둥근 막대 stepper, 오른쪽 '설정' 버튼 하나.
+ * 학생/둘러보기/교사 화면이 함께 쓴다.
  */
 export function StageShell({
   openStages,
   initialStage,
-  header,
+  title,
+  badge,
+  back,
+  settings,
   hideStages = [],
 }: {
   openStages: string[];
   initialStage?: string | null;
-  header: ReactNode;
+  /** 수업(학급) 제목 */
+  title: string;
+  /** 제목 옆 작은 표시 (예: 읽기 전용) */
+  badge?: ReactNode;
+  /** 뒤로 가기 링크 */
+  back?: { href: string; label: string };
+  /** 설정 패널 내용 */
+  settings: ReactNode;
   hideStages?: StageKey[];
 }) {
   const { groupId, isOwnGroup } = useRoomCtx();
@@ -73,11 +84,29 @@ export function StageShell({
 
   return (
     <div className="min-h-dvh">
-      <header className={clsx("sticky top-0 z-20 transition-[background-color] duration-200", scrolled && "material-thin")}>
-        <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2.5 sm:px-5 lg:flex-nowrap">
-          <div className="min-w-0 flex-1 lg:flex-none">{header}</div>
+      <header className={clsx("sticky top-0 z-20 transition-[background-color,box-shadow] duration-200", scrolled && "material-thin shadow-[0_1px_0_var(--line)]")}>
+        <div className="mx-auto grid max-w-[1400px] grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2 px-3 py-2.5 sm:px-5 lg:grid-cols-[1fr_auto_1fr]">
+          {/* 왼쪽: 로고 + 수업 제목 */}
+          <div className="flex min-w-0 items-center gap-2.5">
+            {back ? (
+              <Link href={back.href} className="pressable flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-paper-2 text-ink-2 hover:bg-paper-3" aria-label={back.label} title={back.label}>
+                <ArrowLeft size={18} />
+              </Link>
+            ) : null}
+            <Image src="/logo.png" alt="" width={36} height={36} className="h-9 w-9 shrink-0 rounded-[10px]" priority />
+            <div className="min-w-0">
+              <p className="truncate text-[15px] font-bold leading-tight">{title}</p>
+              {badge ? <div className="mt-0.5 flex items-center gap-1">{badge}</div> : null}
+            </div>
+          </div>
 
-          <nav aria-label="활동 단계" className="order-last w-full lg:order-none lg:w-auto lg:flex-1">
+          {/* 오른쪽: 설정 */}
+          <div className="flex items-center justify-end lg:order-last">
+            <SettingsMenu>{settings}</SettingsMenu>
+          </div>
+
+          {/* 가운데: 둥근 막대 stepper */}
+          <nav aria-label="활동 단계" className="col-span-2 lg:col-span-1 lg:justify-self-center">
             <LayoutGroup id={`stages-${groupId}`}>
               <ol className="pill-bar mx-auto flex w-fit max-w-full items-center gap-0.5 overflow-x-auto p-1">
                 {stages.map((s) => {
@@ -93,11 +122,11 @@ export function StageShell({
                         aria-label={`${s.label}${open ? "" : " (잠김)"}`}
                         title={open ? s.desc : "선생님이 아직 열지 않은 단계예요"}
                         className={clsx(
-                          "pressable relative flex min-w-[64px] flex-col items-center gap-0.5 rounded-full px-3 py-1.5 sm:min-w-[72px]",
+                          "pressable relative flex min-w-[60px] flex-col items-center gap-0.5 rounded-full px-3 py-1.5 sm:min-w-[68px]",
                           active ? "text-ink" : open ? "text-ink-2 hover:text-ink" : "cursor-not-allowed text-ink-3/60",
                         )}
                       >
-                        {active ? <motion.span layoutId="stage-pill" className="absolute inset-0 rounded-full bg-paper-3/80" transition={springs.quick} aria-hidden /> : null}
+                        {active ? <motion.span layoutId="stage-pill" className="pill-thumb absolute inset-0 rounded-full" transition={springs.quick} aria-hidden /> : null}
                         <span className="relative flex h-5 items-center">
                           {open ? <Icon size={18} strokeWidth={active ? 2.2 : 1.8} /> : <Lock size={16} strokeWidth={1.8} />}
                         </span>
@@ -109,13 +138,6 @@ export function StageShell({
               </ol>
             </LayoutGroup>
           </nav>
-
-          <div className="flex items-center gap-2">
-            <ThemeToggle className="max-sm:hidden" />
-            <div className="pill-bar flex h-9 items-center px-1.5">
-              <PresenceBar />
-            </div>
-          </div>
         </div>
       </header>
       <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6">
@@ -143,6 +165,8 @@ export function StageShell({
     </div>
   );
 }
+
+export { Badge as HeaderBadge };
 
 /** 내용이 크롬 아래로 들어갔을 때만 재질을 켠다 */
 function useScrolled() {

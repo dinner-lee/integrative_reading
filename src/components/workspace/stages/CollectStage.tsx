@@ -57,7 +57,7 @@ export function CollectStage() {
     <div className="mx-auto max-w-5xl">
       <SectionTitle
         title="자료 모으기"
-        desc="화제와 관련된 자료를 찾아 등록해요. 온라인 자료는 링크를, 오프라인 자료는 지은이와 펴낸 곳을 꼭 적어요."
+        desc="화제와 관련된 자료를 찾아 등록해요."
         actions={
           canEdit ? (
             <Button variant="primary" onClick={() => setEditing("new")}>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { JoinForm } from "@/components/JoinForm";
 import { db } from "@/lib/db";
 
@@ -17,7 +18,9 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
       <div className="w-full max-w-sm rounded-[var(--radius-panel)] border border-line bg-surface p-7 shadow-card sm:p-8">
         {classroom && !classroom.archived ? (
           <>
-            <p className="text-sm font-semibold text-accent">엮어 쓰기</p>
+            <p className="flex items-center gap-2 text-sm font-semibold">
+              <Image src="/logo.png" alt="" width={28} height={28} className="h-7 w-7 rounded-[8px]" /> 엮어 쓰기
+            </p>
             <h1 className="mt-1 text-xl font-bold">{classroom.name}</h1>
             <p className="mb-5 mt-1 text-sm text-ink-3">이름을 쓰고 들어가세요.</p>
             <JoinForm initialCode={code.toUpperCase()} />

@@ -1,4 +1,5 @@
 import { ArrowUpRight, Shapes } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { JoinForm } from "@/components/JoinForm";
 import { LandingPreview } from "@/components/landing/Preview";
@@ -16,17 +17,15 @@ export default function Home() {
       <header className="sticky top-0 z-20">
         <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Link href="/" className="pill-bar flex h-11 items-center gap-2 pl-1.5 pr-4 text-[15px] font-semibold">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-on-primary">
-              <Shapes size={16} />
-            </span>
+            <Image src="/logo.png" alt="" width={32} height={32} className="h-8 w-8 rounded-[9px]" priority />
             엮어 쓰기
           </Link>
           <nav className="pill-bar flex h-11 items-center gap-1 p-1" aria-label="주 메뉴">
             <a href="#stages" className="pressable hidden rounded-full px-3.5 text-sm text-ink-2 hover:text-ink sm:block">
               일곱 단계
             </a>
-            <ThemeToggle className="border-0 bg-transparent" />
-            <Link href="/teacher/login" className="pressable flex h-9 items-center gap-1 rounded-full bg-primary px-4 text-sm font-semibold text-on-primary">
+            <ThemeToggle className="h-9 bg-transparent p-0" />
+            <Link href="/teacher/login" className="pressable flex h-9 items-center gap-1 rounded-full bg-primary px-4 text-sm font-semibold text-on-primary hover:bg-accent-hover">
               교사 화면 <ArrowUpRight size={15} />
             </Link>
           </nav>

@@ -84,7 +84,7 @@ export function OrganizeStage() {
     <div>
       <SectionTitle
         title="조직하기"
-        desc="선정한 자료를 개요의 어느 부분에 쓸지 함께 정해요. 왼쪽 자료를 오른쪽 칸으로 끌어다 놓거나, 칸에서 고를 수 있어요."
+        desc="선정한 자료를 개요의 어느 칸에 쓸지 정해요."
       />
       <PlanSummary className="mb-4" />
       <div className="grid gap-5 lg:grid-cols-[minmax(260px,340px)_1fr]">

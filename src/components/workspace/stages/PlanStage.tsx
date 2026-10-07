@@ -3,11 +3,13 @@
 import { LiveObject } from "@liveblocks/client";
 import { useMutation, useStorage } from "@liveblocks/react/suspense";
 import { trackDebounced } from "@/lib/client/logger";
-import { Card, Field, Input, SectionTitle, Textarea } from "../../ui";
+import { colorFor } from "@/lib/rooms";
+import { Card, Field, Input, SectionTitle, Textarea, clsx } from "../../ui";
 import { userKey, useRoomCtx } from "../context";
 
 const FORMATS = ["설명문", "안내문", "기사문", "보고서", "카드뉴스", "기타"];
 
+/** 계획하기: 모둠 계획 한 장 + 모둠원 각자의 생각 */
 export function PlanStage() {
   const { canEdit, viewer, members } = useRoomCtx();
   const plan = useStorage((root) => root.plan);
@@ -34,101 +36,114 @@ export function PlanStage() {
   );
 
   const mine = memberPlans?.[myKey];
+  const isMember = viewer.role === "student" && canEdit;
 
   return (
     <div className="mx-auto max-w-5xl">
-      <SectionTitle
-        title="계획하기"
-        desc="무엇에 대해, 누구에게, 왜 쓰는지 정해요. 이 내용은 자료를 고르고 글을 쓸 때 계속 옆에 보여요."
-      />
-      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
-        <Card className="space-y-4 p-5">
-          <h3 className="font-bold">우리 모둠의 글</h3>
-          <Field label="화제" hint="예: 자전거 통학, 우리 지역 하천 생태">
+      <SectionTitle title="계획하기" desc="무엇에 대해, 누구에게, 왜 쓰는지 정해요." />
+
+      <Card className="p-5 sm:p-6">
+        <div className="grid gap-x-8 gap-y-5 md:grid-cols-2">
+          <Field label="화제" hint="예: 자전거 통학">
             <Input value={plan?.topic ?? ""} onChange={(e) => setPlan("topic", e.target.value)} disabled={!canEdit} maxLength={80} />
-          </Field>
-          <Field label="글의 목적" hint="읽은 사람이 무엇을 알게 되거나 할 수 있게 되기를 바라나요?">
-            <Textarea rows={3} value={plan?.purpose ?? ""} onChange={(e) => setPlan("purpose", e.target.value)} disabled={!canEdit} maxLength={600} />
-          </Field>
-          <Field label="예상 독자" hint="누가 읽나요? 그 사람은 이 화제에 대해 얼마나 알고 있나요?">
-            <Textarea rows={2} value={plan?.audience ?? ""} onChange={(e) => setPlan("audience", e.target.value)} disabled={!canEdit} maxLength={400} />
           </Field>
           <div>
             <span className="mb-1.5 block text-sm font-semibold">글의 형식</span>
             <div className="flex flex-wrap gap-1.5">
-              {FORMATS.map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  disabled={!canEdit}
-                  onClick={() => setPlan("format", plan?.format === f ? "" : f)}
-                  aria-pressed={plan?.format === f}
-                  className={
-                    "rounded-full border px-3 py-1 text-sm transition-colors disabled:cursor-not-allowed " +
-                    (plan?.format === f ? "border-primary bg-primary font-semibold text-on-primary" : "border-line-strong bg-surface text-ink-2 hover:bg-paper-2")
-                  }
-                >
-                  {f}
-                </button>
-              ))}
+              {FORMATS.map((f) => {
+                const on = plan?.format === f;
+                return (
+                  <button
+                    key={f}
+                    type="button"
+                    disabled={!canEdit}
+                    onClick={() => setPlan("format", on ? "" : f)}
+                    aria-pressed={on}
+                    className={clsx(
+                      "pressable h-9 rounded-full border px-3.5 text-sm disabled:cursor-not-allowed",
+                      on ? "border-primary bg-primary font-semibold text-on-primary" : "border-line bg-surface text-ink-2 hover:bg-paper-2",
+                    )}
+                  >
+                    {f}
+                  </button>
+                );
+              })}
             </div>
           </div>
-        </Card>
+          <Field label="글의 목적" hint="읽는 사람이 무엇을 알게 되거나 할 수 있게 되나요?">
+            <Textarea rows={3} value={plan?.purpose ?? ""} onChange={(e) => setPlan("purpose", e.target.value)} disabled={!canEdit} maxLength={600} />
+          </Field>
+          <Field label="예상 독자" hint="누가 읽나요? 이 화제를 얼마나 알고 있나요?">
+            <Textarea rows={3} value={plan?.audience ?? ""} onChange={(e) => setPlan("audience", e.target.value)} disabled={!canEdit} maxLength={400} />
+          </Field>
+        </div>
+      </Card>
 
-        <div className="space-y-5">
-          {viewer.role === "student" && canEdit ? (
-            <Card className="space-y-4 p-5">
-              <div>
-                <h3 className="font-bold">나의 생각</h3>
-                <p className="text-[13px] text-ink-3">모둠원도 볼 수 있어요. 서로의 생각을 비교해 모둠 계획을 다듬어 보세요.</p>
-              </div>
-              <Field label="내가 생각하는 글의 목적">
+      <div className="mt-8 grid gap-5 lg:grid-cols-[1fr_1fr]">
+        {isMember ? (
+          <Card className="p-5 sm:p-6">
+            <h3 className="font-bold">나의 생각</h3>
+            <p className="mb-4 text-[13px] text-ink-3">모둠원이 함께 봐요.</p>
+            <div className="space-y-4">
+              <Field label="내가 생각하는 목적">
                 <Textarea rows={2} value={mine?.purpose ?? ""} onChange={(e) => setMine("purpose", e.target.value)} maxLength={400} />
               </Field>
-              <Field label="내가 생각하는 예상 독자">
+              <Field label="내가 생각하는 독자">
                 <Input value={mine?.audience ?? ""} onChange={(e) => setMine("audience", e.target.value)} maxLength={200} />
               </Field>
-              <Field label="독자가 궁금해할 것 · 찾아야 할 자료" hint="한 줄에 하나씩 적어 보세요.">
+              <Field label="독자가 궁금해할 것, 찾아야 할 자료" hint="한 줄에 하나씩">
                 <Textarea rows={4} value={mine?.questions ?? ""} onChange={(e) => setMine("questions", e.target.value)} maxLength={1000} />
               </Field>
-            </Card>
-          ) : null}
+            </div>
+          </Card>
+        ) : null}
 
-          <Card className="p-5">
-            <h3 className="mb-3 font-bold">모둠원의 생각</h3>
-            <ul className="space-y-3">
-              {members
-                .filter((m) => viewer.role !== "student" || m.id !== viewer.id || !canEdit)
-                .map((m) => {
-                  const p = memberPlans?.[userKey("student", m.id)];
-                  return (
-                    <li key={m.id} className="rounded-lg bg-surface-2 px-3 py-2.5 text-sm">
+        <Card className="p-5 sm:p-6">
+          <h3 className="mb-4 font-bold">모둠원의 생각</h3>
+          <ul className="divide-y divide-line">
+            {members
+              .filter((m) => !(isMember && m.id === viewer.id))
+              .map((m) => {
+                const p = memberPlans?.[userKey("student", m.id)];
+                const filled = p && (p.purpose || p.audience || p.questions);
+                return (
+                  <li key={m.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
+                    <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white" style={{ background: colorFor(m.id) }}>
+                      {m.name.slice(-2)}
+                    </span>
+                    <div className="min-w-0 flex-1 text-sm">
                       <p className="font-semibold">{m.name}</p>
-                      {p && (p.purpose || p.audience || p.questions) ? (
+                      {filled ? (
                         <dl className="mt-1 space-y-1 text-ink-2">
                           {p.purpose ? (
-                            <div>
-                              <dt className="inline text-ink-3">목적 · </dt>
-                              <dd className="inline">{p.purpose}</dd>
+                            <div className="flex gap-2">
+                              <dt className="w-8 shrink-0 text-ink-3">목적</dt>
+                              <dd>{p.purpose}</dd>
                             </div>
                           ) : null}
                           {p.audience ? (
-                            <div>
-                              <dt className="inline text-ink-3">독자 · </dt>
-                              <dd className="inline">{p.audience}</dd>
+                            <div className="flex gap-2">
+                              <dt className="w-8 shrink-0 text-ink-3">독자</dt>
+                              <dd>{p.audience}</dd>
                             </div>
                           ) : null}
-                          {p.questions ? <dd className="whitespace-pre-line">{p.questions}</dd> : null}
+                          {p.questions ? (
+                            <div className="flex gap-2">
+                              <dt className="w-8 shrink-0 text-ink-3">질문</dt>
+                              <dd className="whitespace-pre-line">{p.questions}</dd>
+                            </div>
+                          ) : null}
                         </dl>
                       ) : (
                         <p className="mt-0.5 text-ink-3">아직 적지 않았어요.</p>
                       )}
-                    </li>
-                  );
-                })}
-            </ul>
-          </Card>
-        </div>
+                    </div>
+                  </li>
+                );
+              })}
+            {members.filter((m) => !(isMember && m.id === viewer.id)).length === 0 ? <li className="py-2 text-sm text-ink-3">아직 다른 모둠원이 없어요.</li> : null}
+          </ul>
+        </Card>
       </div>
     </div>
   );
