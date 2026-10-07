@@ -491,11 +491,11 @@ function PreviewModal({ open, onClose, cond, materials }: { open: boolean; onClo
           <>
             <PreprocessStats stats={data.stats} />
             <div className="grid gap-3 lg:grid-cols-2">
-              <div className="rounded-xl border border-line p-3">
+              <div className="rounded-xl bg-surface-2 p-3">
                 <p className="mb-2 text-[13px] font-semibold">원문</p>
                 <p className="max-h-60 overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed text-ink-2">{m?.content.slice(0, 1500)}</p>
               </div>
-              <div className="rounded-xl border border-line p-3">
+              <div className="rounded-xl bg-surface-2 p-3">
                 <p className="mb-2 text-[13px] font-semibold">형태소 (파란 낱말만 분석에 쓰여요)</p>
                 <div className="max-h-60 overflow-y-auto">
                   <MorphemeStrip morphemes={data.morphemes} />

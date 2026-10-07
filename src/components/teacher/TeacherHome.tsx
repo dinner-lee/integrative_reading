@@ -81,7 +81,7 @@ export function TeacherHome({ teacher }: { teacher: { name: string; email: strin
           {list.map((c) => (
             <li key={c.id}>
               <Link href={`/teacher/c/${c.id}`}>
-                <Card className="p-4 transition-colors hover:border-line-strong">
+                <Card className="p-4 transition-shadow hover:shadow-[var(--shadow)]">
                   <div className="flex items-center justify-between">
                     <h2 className="font-bold">{c.name}</h2>
                     {c.archived ? <Badge>보관됨</Badge> : <Badge tone="accent">{c.inviteCode}</Badge>}

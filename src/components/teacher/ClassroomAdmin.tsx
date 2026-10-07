@@ -170,7 +170,7 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
               <p className="font-mono text-3xl font-bold tracking-[0.18em]">{c.inviteCode}</p>
             </div>
             <div className="min-w-0 flex-1 space-y-2">
-              <div className="flex items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm">
+              <div className="flex items-center gap-2 rounded-xl bg-surface-2 px-3 py-2 text-sm">
                 <span className="min-w-0 flex-1 truncate font-mono text-[13px]">{link}</span>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -278,7 +278,7 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
               <li key={e.type}>
                 <a
                   href={`/api/teacher/classrooms/${classroomId}/export?type=${e.type}`}
-                  className="flex h-full items-start gap-2 rounded-lg border border-line px-3 py-2 hover:bg-surface-2"
+                  className="pressable flex h-full items-start gap-2 rounded-xl bg-surface-2 px-3 py-2.5 hover:bg-paper-2"
                 >
                   <Download size={15} className="mt-0.5 shrink-0 text-ink-3" />
                   <span>
@@ -475,14 +475,14 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
 function StudentChip({ s, groups, action }: { s: Student; groups: Group[]; action: (fn: () => Promise<unknown>) => void }) {
   const { confirm } = useDialog();
   return (
-    <li className="flex items-center gap-1 rounded-lg border border-line bg-surface py-1 pl-2.5 pr-1 text-sm">
+    <li className="flex items-center gap-1 rounded-full bg-paper-2 py-1 pl-3 pr-1 text-sm">
       <span className="font-medium" title={`마지막 접속 ${new Date(s.lastSeenAt).toLocaleString("ko-KR")}`}>
         {s.name}
       </span>
       <select
         value={s.groupId ?? ""}
         onChange={(e) => action(() => api(`/api/teacher/students/${s.id}`, { method: "PATCH", json: { groupId: e.target.value || null } }))}
-        className="h-7 rounded-lg border border-line-strong bg-surface px-1 text-[13px]"
+        className="h-7 rounded-full bg-surface px-2 text-[13px]"
         aria-label={`${s.name} 모둠`}
       >
         <option value="">모둠 없음</option>

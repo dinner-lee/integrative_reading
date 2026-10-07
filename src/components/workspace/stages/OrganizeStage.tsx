@@ -125,9 +125,9 @@ export function OrganizeStage() {
                               enabled={canEdit}
                               handlers={dnd.handlers(id)}
                               className={clsx(
-                                "flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm",
+                                "flex items-center gap-2 rounded-xl px-2.5 py-2 text-sm",
                                 canEdit && "cursor-grab active:cursor-grabbing",
-                                n ? "border-line bg-surface-2" : "border-line-strong bg-surface",
+                                n ? "bg-surface-2" : "card-sm",
                               )}
                             >
                               {canEdit ? <GripVertical size={14} className="shrink-0 text-ink-3" aria-hidden /> : null}
@@ -260,7 +260,7 @@ function SectionCard({
       data-drop={s.id}
       onMouseEnter={onFocus}
       onFocusCapture={onFocus}
-      className={clsx("rounded-xl border bg-surface transition-[border-color,box-shadow] duration-150", dropClass(over))}
+      className={clsx("card transition-[box-shadow] duration-150", dropClass(over))}
     >
       <div className="flex flex-wrap items-start gap-3 p-4">
         <select
@@ -368,7 +368,7 @@ function SectionCard({
           <select
             value=""
             onChange={(e) => e.target.value && onPlace(e.target.value)}
-            className="mt-2 h-8 w-full rounded-lg border border-dashed border-line-strong bg-surface px-2 text-[13px] text-ink-2"
+            className="mt-2 h-9 w-full rounded-full bg-paper-2 px-3 text-[13px] text-ink-2"
             aria-label="이 칸에 자료 넣기"
           >
             <option value="">+ 이 칸에 자료 넣기</option>

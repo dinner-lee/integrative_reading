@@ -18,7 +18,7 @@ const CLUSTERS = ["통학로 안전", "건강과 운동", "환경"];
 export function LandingPreview() {
   return (
     <div className="enter-fade relative" aria-label="자료 분석하기 화면 보기">
-      <figure className="relative m-0 aspect-[4/3.4] overflow-hidden rounded-[var(--radius-panel)] bg-paper-2 shadow-card ring-1 ring-line sm:aspect-[4/3]">
+      <figure className="relative m-0 aspect-[4/3.4] overflow-hidden rounded-[var(--radius-panel)] bg-paper-2 shadow-card sm:aspect-[4/3]">
         <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_80%_0%,color-mix(in_srgb,var(--accent)_10%,transparent),transparent_60%),radial-gradient(90%_70%_at_0%_100%,color-mix(in_srgb,#1b998b_10%,transparent),transparent_60%)]" />
         <svg viewBox="0 0 400 340" className="absolute inset-0 h-full w-full" role="img" aria-label="자료 6개를 두 축으로 펼친 지도">
           <line x1="200" x2="200" y1="24" y2="316" stroke="var(--line-strong)" strokeDasharray="3 5" />
@@ -58,7 +58,7 @@ export function LandingPreview() {
       </figure>
 
       {/* 모둠 논의 카드 (사진 위 댓글 카드처럼 겹침) */}
-      <div className="material-panel absolute -left-3 bottom-16 w-[min(300px,78%)] rounded-[var(--radius-card)] p-4 sm:-left-8 sm:bottom-20">
+      <div className="card absolute -left-3 bottom-16 w-[min(300px,78%)] p-4 sm:-left-8 sm:bottom-20">
         <div className="flex items-center gap-2.5">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#d6336c] text-[11px] font-bold text-white">하늘</span>
           <p className="text-sm">

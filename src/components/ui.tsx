@@ -121,7 +121,7 @@ export function Badge({ children, tone = "neutral", className }: { children: Rea
 
 export function Card({ children, className, ...rest }: { children: ReactNode; className?: string } & React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={clsx("rounded-[var(--radius-card)] border border-line/70 bg-surface shadow-[0_1px_2px_oklch(0%_0_0/0.03)]", className)} {...rest}>
+    <div className={clsx("card", className)} {...rest}>
       {children}
     </div>
   );
@@ -275,7 +275,7 @@ export function Modal({
 
 export function Empty({ title, children, icon }: { title: string; children?: ReactNode; icon?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-[var(--radius-card)] border border-dashed border-line-strong px-6 py-10 text-center">
+    <div className="flex flex-col items-center justify-center rounded-[var(--radius-card)] bg-surface-2 px-6 py-10 text-center">
       {icon ? <div className="mb-3 text-ink-3">{icon}</div> : null}
       <p className="font-semibold text-ink">{title}</p>
       {children ? <div className="mt-1.5 max-w-md text-sm text-ink-3">{children}</div> : null}

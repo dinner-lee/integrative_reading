@@ -11,6 +11,7 @@ import { Button, Spinner, clsx } from "../../ui";
 import { useRoomCtx } from "../context";
 import { useMaterials } from "../hooks";
 import { DraftEditor } from "../write/DraftEditor";
+import { KoToolbar } from "../write/KoToolbar";
 import { RefSidebar } from "../write/RefSidebar";
 
 type DocTab = { key: string; label: string; field: string; editable: boolean };
@@ -65,17 +66,17 @@ export function WriteStage() {
   }
 
   return (
-    <div className="-mx-4 sm:-mx-6">
-      <div className="flex min-h-[calc(100dvh-120px)]">
+    <div className="card overflow-hidden">
+      <div className="flex min-h-[calc(100dvh-140px)]">
         {!mobile ? (
           <motion.aside
             initial={false}
             animate={{ width: sidebar ? SIDEBAR_W : 0 }}
             transition={springs.default}
-            className="shrink-0 overflow-hidden border-r border-line bg-surface-2"
+            className="shrink-0 overflow-hidden bg-surface-2"
             aria-hidden={!sidebar}
           >
-            <div className="sticky top-[104px] h-[calc(100dvh-104px)]" style={{ width: SIDEBAR_W }}>
+            <div className="sticky top-[84px] h-[calc(100dvh-100px)]" style={{ width: SIDEBAR_W }}>
               {panel}
             </div>
           </motion.aside>
@@ -112,13 +113,14 @@ export function WriteStage() {
           ) : null}
         </AnimatePresence>
 
-        <section className="min-w-0 flex-1 bg-surface px-4 py-4 sm:px-8">
-          <div className="mx-auto max-w-[1100px]">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <Button size="sm" variant="ghost" onClick={() => setSidebar((v) => !v)} aria-label={sidebar ? "사이드바 닫기" : "사이드바 열기"} aria-expanded={sidebar}>
-                {sidebar ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
-                <span className="max-sm:hidden">{sidebar ? "자료 닫기" : "개요·자료 보기"}</span>
-              </Button>
+        <section className="min-w-0 flex-1">
+          {/* 카드 머리: 왼쪽 글 도구(회색 원), 오른쪽 문서 전환·사이드바 */}
+          <div className="sticky top-[76px] z-10 flex flex-wrap items-center gap-2 bg-surface/95 px-4 pb-2 pt-4 backdrop-blur sm:px-8">
+            <Button size="sm" variant="secondary" onClick={() => setSidebar((v) => !v)} aria-label={sidebar ? "사이드바 닫기" : "사이드바 열기"} aria-expanded={sidebar} className="h-9 w-9 px-0">
+              {sidebar ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+            </Button>
+            {tab?.editable ? <KoToolbar editor={editor} /> : <span className="text-[13px] text-ink-3">읽기 전용. 글자를 골라 댓글을 남길 수 있어요.</span>}
+            <div className="ml-auto flex items-center gap-2">
               {tabs.length > 1 ? (
                 <LayoutGroup id={`docs-${groupId}`}>
                   <div className="flex flex-wrap gap-0.5 rounded-full bg-paper-2 p-0.5" role="tablist">
@@ -143,10 +145,9 @@ export function WriteStage() {
                   </div>
                 </LayoutGroup>
               ) : null}
-              <p className="ml-auto text-[13px] text-ink-3">
-                {tab?.editable ? "글자를 드래그해서 고르면 댓글을 달 수 있어요." : "읽기 전용. 글자를 골라 댓글을 남길 수 있어요."}
-              </p>
             </div>
+          </div>
+          <div className="px-6 pb-16 pt-6 sm:px-10">
             {tab ? (
               <DraftEditor
                 key={tab.field}

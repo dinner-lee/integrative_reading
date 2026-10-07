@@ -185,7 +185,7 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
                   </button>
                   {canEdit ? (
                     <select
-                      className="ml-1 rounded-lg border border-line-strong bg-surface text-xs"
+                      className="ml-1 rounded-full bg-paper-2 px-2 text-xs"
                       value=""
                       onChange={(e) => e.target.value && moveMaterial(m.id, e.target.value)}
                       aria-label={`${m.title} 묶음 고르기`}
@@ -308,7 +308,7 @@ function ClusterCard({
       data-drop={c.id}
       onFocusCapture={onFocus}
       onMouseEnter={onFocus}
-      className={clsx("relative rounded-xl border bg-surface transition-[border-color,box-shadow] duration-150", dropClass(over))}
+      className={clsx("card relative transition-[box-shadow] duration-150", dropClass(over))}
       style={{ borderLeft: `5px solid ${color}`, zIndex: lifting ? 50 : undefined }}
     >
       <div className="flex flex-wrap items-start gap-3 p-4 pb-3">
@@ -468,14 +468,14 @@ function MaterialRow({
               disabled={!canEdit}
               onClick={() => onDecision({ status: status === d.value ? "undecided" : d.value })}
               className={clsx(
-                "pressable h-7 rounded-lg border px-2.5 text-[13px] font-medium disabled:cursor-default",
+                "pressable h-7 rounded-full px-3 text-[13px] font-medium disabled:cursor-default",
                 status === d.value
                   ? d.tone === "ok"
-                    ? "border-ok bg-ok text-on-accent"
+                    ? "bg-ok text-on-accent"
                     : d.tone === "warn"
-                      ? "border-warn bg-warn text-on-accent"
-                      : "border-bad bg-bad text-on-accent"
-                  : "border-line-strong bg-surface text-ink-2 hover:bg-paper-2",
+                      ? "bg-warn text-on-accent"
+                      : "bg-bad text-on-accent"
+                  : "bg-paper-2 text-ink-2 hover:bg-paper-3",
               )}
             >
               {d.label}
@@ -486,7 +486,7 @@ function MaterialRow({
               <select
                 value=""
                 onChange={(e) => e.target.value && onMove(e.target.value)}
-                className="h-7 w-7 cursor-pointer appearance-none rounded-lg border border-line-strong bg-surface text-transparent"
+                className="h-7 w-7 cursor-pointer appearance-none rounded-full bg-paper-2 text-transparent"
                 aria-label="다른 묶음으로 옮기기"
               >
                 <option value="">옮기기</option>

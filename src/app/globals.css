@@ -10,7 +10,7 @@
 */
 :root {
   /* HeroUI theme.css (밝은 모드) 를 옮긴 값. 색상각 253.83 = 파랑 계열 중성색 */
-  --paper: oklch(97.02% 0.0015 253.83); /* background */
+  --paper: oklch(95.8% 0.0015 253.83); /* background (캡처 기준으로 살짝 어둡게) */
   --paper-2: oklch(94% 0.0015 253.83); /* default */
   --paper-3: oklch(90% 0.0015 253.83);
   --surface: oklch(100% 0.0008 253.83); /* surface */
@@ -40,6 +40,8 @@
   --bad: oklch(58% 0.21 25.74); /* danger */
   --bad-soft: oklch(95% 0.03 25.74);
   --shadow: 0 18px 50px -24px oklch(21% 0.0015 253.83 / 0.25);
+  /* 카드: 외곽선 없이 부드러운 그림자만 */
+  --card-shadow: 0 1px 3px oklch(0% 0 0 / 0.05), 0 12px 32px -12px oklch(21% 0.0015 253.83 / 0.16);
   --material-thin: oklch(100% 0 0 / 0.75);
   --material-thick: oklch(100% 0.0004 253.83 / 0.95); /* overlay */
   --material-edge: oklch(100% 0 0 / 0.6);
@@ -78,6 +80,8 @@
     --bad: oklch(66% 0.19 24.63);
     --bad-soft: oklch(28% 0.07 24.63);
     --shadow: 0 18px 50px -24px oklch(0% 0 0 / 0.6);
+  --card-shadow: 0 1px 2px oklch(0% 0 0 / 0.35), 0 10px 30px -14px oklch(0% 0 0 / 0.5);
+    --card-shadow: 0 1px 2px oklch(0% 0 0 / 0.35), 0 10px 30px -14px oklch(0% 0 0 / 0.5);
     --material-thin: oklch(21% 0.003 253.83 / 0.75);
     --material-thick: oklch(21.03% 0.003 253.83 / 0.95);
     --material-edge: oklch(100% 0 0 / 0.08);
@@ -115,6 +119,7 @@
   --bad: oklch(66% 0.19 24.63);
   --bad-soft: oklch(28% 0.07 24.63);
   --shadow: 0 18px 50px -24px oklch(0% 0 0 / 0.6);
+  --card-shadow: 0 1px 2px oklch(0% 0 0 / 0.35), 0 10px 30px -14px oklch(0% 0 0 / 0.5);
   --material-thin: oklch(21% 0.003 253.83 / 0.75);
   --material-thick: oklch(21.03% 0.003 253.83 / 0.95);
   --material-edge: oklch(100% 0 0 / 0.08);
@@ -166,8 +171,8 @@
   /* 모서리 규칙 (HeroUI, Radius Form Large): 버튼·칩·내비 알약, 입력 0.875rem, 카드 1.25rem, 패널·모달 1.5rem */
   --radius: 9999px;
   --field-radius: 0.875rem;
-  --radius-card: 1.25rem;
-  --radius-panel: 1.5rem;
+  --radius-card: 1.5rem;
+  --radius-panel: 1.75rem;
 }
 
 html {
@@ -352,10 +357,57 @@ h3 {
   }
 }
 
-/* 공동 편집기 본문 */
+/* 카드: 외곽선 없이 흰 바탕 + 큰 둥근 모서리 + 부드러운 그림자 */
+.card {
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+}
+.card-sm {
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+}
+@media (prefers-contrast: more) {
+  .card,
+  .card-sm {
+    box-shadow: 0 0 0 1px var(--ink-3);
+  }
+}
+
+/* 글 도구 모음: 카드 머리에 녹아들도록 바탕·테두리 없이, 버튼은 회색 원 */
+.lb-tiptap-toolbar {
+  background: transparent;
+  padding: 0;
+  gap: 2px;
+}
+.lb-tiptap-toolbar .lb-button {
+  border-radius: 9999px;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  padding: 0;
+  justify-content: center;
+}
+.lb-tiptap-toolbar .lb-button:where([data-active]:not([data-active="false"]), [aria-pressed="true"]) {
+  background: var(--paper-2);
+}
+.lb-tiptap-toolbar .lb-button:hover {
+  background: var(--paper-2);
+}
+.lb-tiptap-toolbar .lb-button-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* 공동 편집기 본문: 입력 상자가 아니라 카드 위에 바로 쓴다 */
 .prose-editor {
   outline: none;
   min-height: 60vh;
+  max-width: 72ch;
   font-size: 1.0625rem;
   line-height: 1.85;
 }

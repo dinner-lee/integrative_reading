@@ -13,12 +13,12 @@ export function Discussion({ stage, target, placeholder }: { stage: string; targ
   return (
     <div className="space-y-2">
       {threads.map((t) => (
-        <Thread key={t.id} thread={t} className="rounded-lg border border-line" showComposer={canComment} />
+        <Thread key={t.id} thread={t} className="card-sm" showComposer={canComment} />
       ))}
       {canComment ? (
         <Composer
           metadata={{ stage, target }}
-          className="rounded-lg border border-line"
+          className="card-sm"
           overrides={{ COMPOSER_PLACEHOLDER: placeholder ?? "의견을 남겨 보세요" }}
           onComposerSubmit={(c) => {
             track("comment.create", { target, length: JSON.stringify(c.body).length }, { stage });

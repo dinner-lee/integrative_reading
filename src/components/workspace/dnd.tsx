@@ -81,5 +81,5 @@ export function DraggableItem({
 
 /** 놓을 자리 강조 */
 export function dropClass(active: boolean) {
-  return active ? "border-accent shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_20%,transparent)]" : "border-line";
+  return active ? "shadow-[0_0_0_2px_var(--accent),0_0_0_6px_color-mix(in_srgb,var(--accent)_18%,transparent)]" : "";
 }

@@ -133,10 +133,10 @@ export function ConditionsPanel({
             {chosen.size === materials.length ? "모두 빼기" : "모두 넣기"}
           </button>
         </div>
-        <ul className="max-h-48 space-y-0.5 overflow-y-auto rounded-lg border border-line p-1.5">
+        <ul className="max-h-48 space-y-0.5 overflow-y-auto rounded-xl bg-surface-2 p-1.5">
           {materials.map((m) => (
             <li key={m.id}>
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1 text-sm hover:bg-surface-2">
+              <label className="flex cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1 text-sm hover:bg-paper-2">
                 <input
                   type="checkbox"
                   className="accent-[var(--accent)]"
@@ -153,7 +153,7 @@ export function ConditionsPanel({
         <p className="mt-1 text-[13px] text-ink-3">어떤 자료를 넣고 빼느냐에 따라서도 결과가 달라져요.</p>
       </div>
 
-      <div className="rounded-lg border border-line">
+      <div className="rounded-xl bg-surface-2">
         <button
           type="button"
           onClick={() => setAdvanced((v) => !v)}
@@ -181,9 +181,9 @@ export function ConditionsPanel({
                   <RotateCcw size={13} /> 기본값
                 </button>
               </div>
-              <div className="flex max-h-32 flex-wrap gap-1 overflow-y-auto rounded-lg border border-line bg-surface-2 p-2">
+              <div className="flex max-h-32 flex-wrap gap-1 overflow-y-auto rounded-xl bg-surface p-2">
                 {value.preprocess.stopwords.map((w) => (
-                  <span key={w} className="inline-flex items-center gap-0.5 rounded-lg bg-surface px-1.5 py-0.5 text-[13px] ring-1 ring-line">
+                  <span key={w} className="inline-flex items-center gap-0.5 rounded-full bg-paper-2 px-2 py-0.5 text-[13px]">
                     {w}
                     <button
                       type="button"

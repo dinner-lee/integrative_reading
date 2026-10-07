@@ -56,7 +56,7 @@ export default function Home() {
         <section id="stages" className="mt-28 scroll-mt-24 lg:mt-40" aria-labelledby="stages-title">
           <div className="grid gap-8 lg:grid-cols-[180px_1fr]">
             <div className="flex flex-col items-start gap-3">
-              <span className="rounded-full border border-line bg-surface px-3 py-1 font-mono text-xs tabular-nums text-ink-2">01 / 07</span>
+              <span className="rounded-full bg-paper-2 px-3 py-1 font-mono text-xs tabular-nums text-ink-2">01 / 07</span>
               <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-3">일곱 단계</span>
             </div>
             <h2 id="stages-title" className="max-w-[22ch] text-[clamp(1.75rem,3.6vw,3rem)] font-semibold leading-[1.12] tracking-[-0.025em]">
@@ -72,7 +72,7 @@ export default function Home() {
                   {g.stages.map((s, i) => {
                     const n = g.offset + i + 1;
                     return (
-                      <li key={s.key} className="flex gap-4 rounded-[var(--radius-card)] border border-line bg-surface p-4 shadow-[0_1px_2px_rgb(0_0_0/0.03)]">
+                      <li key={s.key} className="card flex gap-4 p-5">
                         <span className="h-fit shrink-0 rounded-full bg-paper-2 px-2.5 py-1 font-mono text-xs tabular-nums text-ink-2">{String(n).padStart(2, "0")}</span>
                         <div>
                           <p className="font-semibold">{s.label}</p>

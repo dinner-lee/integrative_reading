@@ -102,7 +102,7 @@ function Clusters({ result, open, onAddStopword }: { result: RunResult; open: (i
       <MetricsLine result={result} />
       <div className="grid gap-3 lg:grid-cols-2">
         {result.clusters.map((c) => (
-          <div key={c.id} className="rounded-xl border border-line bg-surface p-4" style={{ borderTop: `4px solid ${clusterColor(c.id)}` }}>
+          <div key={c.id} className="card-sm p-4" style={{ borderTop: `4px solid ${clusterColor(c.id)}` }}>
             <div className="mb-2 flex items-center justify-between">
               <h4 className="font-bold">
                 {isLda ? "주제" : "묶음"} {c.id + 1}
@@ -190,7 +190,7 @@ function MetricsLine({ result }: { result: RunResult }) {
 function KChart({ result }: { result: RunResult }) {
   const max = Math.max(...result.kCandidates.map((c) => c.silhouette), 0.0001);
   return (
-    <div className="rounded-xl border border-line bg-surface p-4">
+    <div className="card-sm p-4">
       <h4 className="font-bold">묶음 수에 따른 실루엣 점수</h4>
       <p className="mb-3 text-[13px] text-ink-3">점수가 높을수록 묶음이 또렷하게 나뉘어요. 하지만 글에 필요한 하위 주제 수와 꼭 같지는 않아요.</p>
       <div className="flex h-28 items-end gap-2">
@@ -222,7 +222,7 @@ function MapView({ result, open }: { result: RunResult; open: (id: string) => vo
         점 하나가 자료 하나예요. 낱말 점수(또는 의미)를 두 방향으로 줄여 그린 지도라서 가까울수록 비슷한 자료예요. 색이 다른데 가까운 자료나, 같은
         색인데 멀리 떨어진 자료를 찾아 원문을 비교해 보세요.
       </Think>
-      <div className="overflow-x-auto rounded-xl border border-line bg-surface">
+      <div className="card-sm overflow-x-auto">
         <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full min-w-[480px]" role="img" aria-label="자료 지도">
           <line x1={W / 2} x2={W / 2} y1={pad / 2} y2={H - pad / 2} stroke="var(--line)" />
           <line y1={H / 2} y2={H / 2} x1={pad / 2} x2={W - pad / 2} stroke="var(--line)" />
@@ -293,7 +293,7 @@ function TermTable({ result, open }: { result: RunResult; open: (id: string) => 
           </button>
         ))}
       </div>
-      <div className="overflow-x-auto rounded-xl border border-line bg-surface">
+      <div className="card-sm overflow-x-auto">
         <table className="w-full min-w-[420px] text-sm">
           <thead className="bg-surface-2 text-left text-[13px] text-ink-2">
             <tr>
@@ -338,7 +338,7 @@ function Similarity({ result }: { result: RunResult }) {
         칸이 진할수록 두 자료가 {result.method === "bertopic" ? "의미가" : "낱말이"} 비슷해요. 가장 비슷하다고 나온 두 자료가 실제로도 같은 내용을 다루나요?
         내용이 겹친다면 둘 다 쓸 필요가 있을까요?
       </Think>
-      <div className="overflow-x-auto rounded-xl border border-line bg-surface p-3">
+      <div className="card-sm overflow-x-auto p-3">
         <table className="border-separate border-spacing-0.5 text-xs">
           <thead>
             <tr>
@@ -451,7 +451,7 @@ function PreprocessResult({ result }: { result: RunResult }) {
         ))}
       </div>
       <PreprocessStats stats={s} />
-      <div className="rounded-xl border border-line bg-surface p-4">
+      <div className="card-sm p-4">
         <p className="mb-2 text-[13px] text-ink-3">앞부분 형태소 (마우스를 올리면 품사)</p>
         <MorphemeStrip morphemes={p.morphemes} />
       </div>
@@ -490,7 +490,7 @@ export function RemovedLists({ removed }: { removed: RunResult["preprocessing"][
   return (
     <div className="grid gap-3 md:grid-cols-3">
       {groups.map(([label, list]) => (
-        <div key={label} className="rounded-xl border border-line bg-surface p-3">
+        <div key={label} className="card-sm p-3">
           <p className="mb-2 text-[13px] font-semibold">{label}</p>
           {list.length ? (
             <p className="text-[13px] leading-relaxed text-ink-2">

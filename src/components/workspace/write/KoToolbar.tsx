@@ -31,22 +31,22 @@ function Items({ editor, withHistory }: { editor: Editor | null; withHistory?: b
     <>
       {withHistory ? (
         <>
-          <Toolbar.Button name="되돌리기" icon={<Undo2 size={16} />} shortcut="Mod-Z" onClick={() => c().undo().run()} />
-          <Toolbar.Button name="다시 하기" icon={<Redo2 size={16} />} shortcut="Mod-Shift-Z" onClick={() => c().redo().run()} />
+          <Toolbar.Button name="되돌리기" aria-label="되돌리기" icon={<Undo2 size={16} />} shortcut="Mod-Z" onClick={() => c().undo().run()} />
+          <Toolbar.Button name="다시 하기" aria-label="다시 하기" icon={<Redo2 size={16} />} shortcut="Mod-Shift-Z" onClick={() => c().redo().run()} />
           <Toolbar.Separator />
-          <Toolbar.Toggle name="본문" icon={<Pilcrow size={16} />} active={!s.h2 && !s.h3} onClick={() => c().setParagraph().run()} />
+          <Toolbar.Toggle name="본문" aria-label="본문" icon={<Pilcrow size={16} />} active={!s.h2 && !s.h3} onClick={() => c().setParagraph().run()} />
         </>
       ) : null}
-      <Toolbar.Toggle name="큰 제목" icon={<Heading2 size={16} />} active={s.h2} onClick={() => c().toggleHeading({ level: 2 }).run()} />
-      <Toolbar.Toggle name="작은 제목" icon={<Heading3 size={16} />} active={s.h3} onClick={() => c().toggleHeading({ level: 3 }).run()} />
+      <Toolbar.Toggle name="큰 제목" aria-label="큰 제목" icon={<Heading2 size={16} />} active={s.h2} onClick={() => c().toggleHeading({ level: 2 }).run()} />
+      <Toolbar.Toggle name="작은 제목" aria-label="작은 제목" icon={<Heading3 size={16} />} active={s.h3} onClick={() => c().toggleHeading({ level: 3 }).run()} />
       <Toolbar.Separator />
-      <Toolbar.Toggle name="굵게" icon={<Bold size={16} />} shortcut="Mod-B" active={s.bold} onClick={() => c().toggleBold().run()} />
-      <Toolbar.Toggle name="기울임" icon={<Italic size={16} />} shortcut="Mod-I" active={s.italic} onClick={() => c().toggleItalic().run()} />
-      <Toolbar.Toggle name="글머리 목록" icon={<List size={16} />} active={s.bullet} onClick={() => c().toggleBulletList().run()} />
-      <Toolbar.Toggle name="번호 목록" icon={<ListOrdered size={16} />} active={s.ordered} onClick={() => c().toggleOrderedList().run()} />
-      <Toolbar.Toggle name="인용" icon={<Quote size={16} />} active={s.quote} onClick={() => c().toggleBlockquote().run()} />
+      <Toolbar.Toggle name="굵게" aria-label="굵게" icon={<Bold size={16} />} shortcut="Mod-B" active={s.bold} onClick={() => c().toggleBold().run()} />
+      <Toolbar.Toggle name="기울임" aria-label="기울임" icon={<Italic size={16} />} shortcut="Mod-I" active={s.italic} onClick={() => c().toggleItalic().run()} />
+      <Toolbar.Toggle name="글머리 목록" aria-label="글머리 목록" icon={<List size={16} />} active={s.bullet} onClick={() => c().toggleBulletList().run()} />
+      <Toolbar.Toggle name="번호 목록" aria-label="번호 목록" icon={<ListOrdered size={16} />} active={s.ordered} onClick={() => c().toggleOrderedList().run()} />
+      <Toolbar.Toggle name="인용" aria-label="인용" icon={<Quote size={16} />} active={s.quote} onClick={() => c().toggleBlockquote().run()} />
       <Toolbar.Separator />
-      <Toolbar.Button name="댓글 달기" icon={<MessageSquarePlus size={16} />} onClick={() => c().addPendingComment().run()}>
+      <Toolbar.Button name="댓글 달기" aria-label="댓글 달기" icon={<MessageSquarePlus size={16} />} onClick={() => c().addPendingComment().run()}>
         댓글
       </Toolbar.Button>
     </>
@@ -67,7 +67,7 @@ export function KoFloatingToolbar({ editor, editable }: { editor: Editor | null;
       {editable ? (
         <Items editor={editor} />
       ) : (
-        <Toolbar.Button name="댓글 달기" icon={<MessageSquarePlus size={16} />} onClick={() => editor?.chain().focus().addPendingComment().run()}>
+        <Toolbar.Button name="댓글 달기" aria-label="댓글 달기" icon={<MessageSquarePlus size={16} />} onClick={() => editor?.chain().focus().addPendingComment().run()}>
           댓글
         </Toolbar.Button>
       )}

@@ -30,7 +30,7 @@ export default function TeacherLogin() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-4 py-10">
-      <div className="w-full max-w-sm rounded-[var(--radius-panel)] border border-line bg-surface p-7 shadow-card sm:p-8">
+      <div className="w-full max-w-sm card p-7 sm:p-8">
         <Link href="/" className="flex items-center gap-2 text-sm font-semibold">
           <Image src="/logo.png" alt="" width={28} height={28} className="h-7 w-7 rounded-[8px]" />
           엮어 쓰기

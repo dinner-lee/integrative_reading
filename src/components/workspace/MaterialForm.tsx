@@ -210,7 +210,7 @@ export function MaterialForm({ material, onSaved, onCancel }: { material?: Mater
         {extractWarn ? <Notice tone="bad" className="mb-2">{extractWarn}</Notice> : null}
         <div className={clsx("grid gap-3", previewUrl && "lg:grid-cols-2")}>
           {previewUrl ? (
-            <iframe src={previewUrl} title="원문 PDF" className="h-[420px] w-full rounded-lg border border-line" />
+            <iframe src={previewUrl} title="원문 PDF" className="h-[420px] w-full rounded-xl bg-surface-2" />
           ) : null}
           <div className="relative">
             <Textarea

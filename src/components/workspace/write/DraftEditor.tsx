@@ -7,7 +7,7 @@ import { EditorContent, useEditor, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useRef, useState } from "react";
 import { track } from "@/lib/client/logger";
-import { KoFloatingToolbar, KoToolbar } from "./KoToolbar";
+import { KoFloatingToolbar } from "./KoToolbar";
 
 /**
  * Liveblocks Yjs 공동 편집기 하나 (field로 같은 방 안의 여러 글을 구분).
@@ -60,11 +60,6 @@ export function DraftEditor({
   return (
     <div className="flex gap-6">
       <div className="min-w-0 flex-1">
-        {editable ? (
-          <div className="sticky top-[57px] z-10 -mx-1 mb-3 border-b border-line bg-surface/95 px-1 py-1.5 backdrop-blur">
-            <KoToolbar editor={editor} />
-          </div>
-        ) : null}
         <EditorContent editor={editor} />
         <KoFloatingToolbar editor={editor} editable={editable} />
         <FloatingComposer

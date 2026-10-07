@@ -89,7 +89,7 @@ export function RefSidebar({ editor, materials, canInsert }: { editor: Editor | 
                 key={s.id}
                 draggable
                 onDragStart={(e) => e.dataTransfer.setData("text/plain", s.title)}
-                className="rounded-lg border border-line bg-surface p-3"
+                className="card-sm p-3"
               >
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm font-bold">
@@ -122,7 +122,7 @@ export function RefSidebar({ editor, materials, canInsert }: { editor: Editor | 
         {tab === "clusters" ? (
           <div className="space-y-2">
             {(clusters ?? []).map((c, i) => (
-              <div key={c.id} className="rounded-lg border border-line bg-surface p-3" style={{ borderLeft: `4px solid ${clusterColor(i)}` }}>
+              <div key={c.id} className="card-sm p-3" style={{ borderLeft: `4px solid ${clusterColor(i)}` }}>
                 <p className="text-sm font-bold">
                   {i + 1}. {c.name || "이름 없는 묶음"}
                 </p>
