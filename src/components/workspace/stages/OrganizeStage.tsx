@@ -289,7 +289,7 @@ function SectionCard({
             disabled={!canEdit}
             maxLength={800}
             placeholder={s.role === "intro" ? "화제를 어떻게 소개하고 독자의 관심을 끌까요?" : s.role === "conclusion" ? "무엇을 정리하고 강조할까요?" : "이 부분에서 전할 중심 내용"}
-            className="mt-1 !shadow-none bg-transparent px-0 py-1 text-sm text-ink-2 focus:!shadow-none"
+            className="mt-1 !bg-transparent !px-0 py-1 text-sm text-ink-2 !shadow-none focus:!shadow-none"
           />
         </div>
         <PopMenu icon={Ellipsis} label="칸 메뉴">
