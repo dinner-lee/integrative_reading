@@ -416,10 +416,11 @@ h3 {
   background: var(--surface);
   box-shadow: var(--card-shadow);
 }
-/* 판: 모서리 둥근 사각형, 외곽선 없이 색 차이로만 구분 (계획하기 구역, 표현하기 참고 패널) */
+/* 선 상자: 채움 없이 얇은 회색 선 하나로 두른 둥근 사각형 (계획하기 구역, 조직하기 자료 열) */
 .panel {
   border-radius: var(--radius-card);
-  background: var(--panel);
+  border: 1px solid var(--line);
+  background: transparent;
 }
 .card-sm {
   border-radius: 1rem;

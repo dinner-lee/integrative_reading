@@ -86,7 +86,7 @@ export function OrganizeStage() {
       <SectionTitle title="조직하기" desc="선정한 자료를 개요의 어느 칸에 쓸지 정해요. 왼쪽 자료를 오른쪽 칸으로 끌어다 놓아요." />
       <PlanSummary className="mb-8" />
       <div className="grid gap-10 lg:grid-cols-[300px_1fr]">
-        <aside className="lg:sticky lg:top-24 lg:self-start">
+        <aside className="panel p-5 lg:sticky lg:top-24 lg:self-start">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="text-lg font-bold tracking-tight">자료</h2>
             <Segmented
