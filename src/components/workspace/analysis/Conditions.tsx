@@ -66,9 +66,9 @@ export function ConditionsPanel({
     .join(", ");
 
   return (
-    <fieldset disabled={disabled} className="space-y-5">
+    <fieldset disabled={disabled} className="divide-y divide-line [&>*]:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
       <div>
-        <span className="mb-1.5 block text-sm font-semibold">분석 방법</span>
+        <h3 className="mb-2 text-[15px] font-semibold">분석 방법</h3>
         <div className="space-y-1.5">
           {METHODS.filter((m) => methods.includes(m.key)).map((m) => (
             <label
@@ -110,7 +110,7 @@ export function ConditionsPanel({
       </Field>
 
       <div>
-        <span className="mb-1.5 block text-sm font-semibold">남길 낱말 종류(품사)</span>
+        <h3 className="mb-2 text-[15px] font-semibold">남길 낱말 종류(품사)</h3>
         <Segmented
           size="sm"
           value={value.preprocess.pos}
@@ -122,9 +122,9 @@ export function ConditionsPanel({
 
       <div>
         <div className="mb-1.5 flex items-center justify-between">
-          <span className="text-sm font-semibold">
+          <h3 className="text-[15px] font-semibold">
             분석에 넣을 자료 {value.materialIds.length}/{materials.length}
-          </span>
+          </h3>
           <button
             type="button"
             className="text-[13px] text-ink-3 hover:text-ink"
@@ -161,7 +161,7 @@ export function ConditionsPanel({
           className="pressable flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left hover:bg-surface-2"
         >
           <span>
-            <span className="block text-sm font-semibold">자세한 조건</span>
+            <span className="block text-[15px] font-semibold">자세한 조건</span>
             <span className="block text-[13px] text-ink-3">{advancedSummary}</span>
           </span>
           <motion.span animate={{ rotate: advanced ? 180 : 0 }} transition={springs.quick} className="text-ink-3">
@@ -172,7 +172,7 @@ export function ConditionsPanel({
           <div className="space-y-4 border-t border-line px-3 py-3">
             <div>
               <div className="mb-1.5 flex items-center justify-between">
-                <span className="text-sm font-semibold">불용어(분석에서 뺄 낱말)</span>
+                <h3 className="text-[15px] font-semibold">불용어(분석에서 뺄 낱말)</h3>
                 <button
                   type="button"
                   onClick={() => setPre("stopwords", defaultStopwords)}

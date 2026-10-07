@@ -9,7 +9,7 @@ import { useCallback, useMemo, useState } from "react";
 import { track, trackDebounced } from "@/lib/client/logger";
 import { useDialog } from "../../dialogs";
 import { springs } from "../../motion";
-import { Badge, Button, Card, Collapse, Empty, Input, SectionTitle, Spinner, Textarea, clsx, clusterColor } from "../../ui";
+import { Badge, Button, Collapse, Empty, Input, SectionTitle, Spinner, Textarea, clsx, clusterColor } from "../../ui";
 import { useRoomCtx } from "../context";
 import { Discussion, DiscussionCount } from "../Discussion";
 import { DraggableItem, dropClass, useDragToDrop } from "../dnd";
@@ -89,9 +89,9 @@ export function OrganizeStage() {
       <PlanSummary className="mb-4" />
       <div className="grid gap-5 lg:grid-cols-[minmax(260px,340px)_1fr]">
         <aside className="lg:sticky lg:top-28 lg:self-start">
-          <Card className="p-4">
+          <div>
             <div className="mb-2 flex items-center justify-between">
-              <h3 className="font-bold">선정한 자료</h3>
+              <h2 className="text-lg font-bold tracking-tight">선정한 자료</h2>
               <label className="flex items-center gap-1.5 text-[13px] text-ink-2">
                 <input type="checkbox" className="accent-[var(--accent)]" checked={showHold} onChange={(e) => setShowHold(e.target.checked)} />
                 보류도 보기
@@ -145,7 +145,7 @@ export function OrganizeStage() {
                 })}
               </div>
             )}
-          </Card>
+          </div>
         </aside>
 
         <section>

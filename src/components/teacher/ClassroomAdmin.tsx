@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/client/api";
 import { METHODS, STAGES, WRITING_MODES, type WritingMode } from "@/lib/stages";
 import { useDialog } from "../dialogs";
-import { Badge, Button, Card, Notice, Spinner, clsx } from "../ui";
+import { Badge, Button, Card, Notice, Section, Sections, Spinner, clsx } from "../ui";
 
 type Classroom = {
   id: string;
@@ -161,10 +161,9 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
       </div>
       {error ? <Notice tone="bad" className="mb-4">{error}</Notice> : null}
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_1fr]">
-        <Card className="p-5">
-          <h2 className="mb-3 font-bold">학생 초대</h2>
-          <div className="flex items-center gap-4">
+      <Sections>
+        <Section title="학생 초대" desc="학생은 이름만 쓰고 들어와요. 같은 이름을 쓰면 같은 학생으로 이어서 할 수 있어요.">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="rounded-xl bg-paper-2 px-4 py-3 text-center">
               <p className="text-[11px] text-ink-3">초대 코드</p>
               <p className="font-mono text-3xl font-bold tracking-[0.18em]">{c.inviteCode}</p>
@@ -197,12 +196,9 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
               </div>
             </div>
           </div>
-          <p className="mt-3 text-[13px] text-ink-3">학생은 이름만 쓰고 들어와요. 같은 이름을 쓰면 같은 학생으로 이어서 할 수 있어요.</p>
-        </Card>
+        </Section>
 
-        <Card className="p-5">
-          <h2 className="mb-1 font-bold">단계 열기</h2>
-          <p className="mb-3 text-[13px] text-ink-3">연 단계만 학생이 들어갈 수 있어요. 바꾸면 20초 안에 학생 화면에 반영돼요.</p>
+        <Section title="단계 열기" desc="연 단계만 학생이 들어갈 수 있어요. 바꾸면 20초 안에 학생 화면에 반영돼요.">
           <div className="flex flex-wrap gap-1.5">
             {STAGES.map((s, i) => {
               const on = c.openStages.includes(s.key);
@@ -226,12 +222,12 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
               모두 열기
             </Button>
           </div>
-        </Card>
+        </Section>
 
-        <Card className="space-y-4 p-5">
-          <h2 className="font-bold">수업 설정</h2>
+        <Section title="수업 설정">
+          <div className="grid gap-x-10 gap-y-6 md:grid-cols-2">
           <div>
-            <p className="mb-1.5 text-sm font-semibold">표현하기 방식</p>
+            <h3 className="mb-2 text-[15px] font-semibold">표현하기 방식</h3>
             <div className="space-y-1">
               {(Object.keys(WRITING_MODES) as WritingMode[]).map((k) => (
                 <label key={k} className="flex items-center gap-2 text-sm">
@@ -242,7 +238,7 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
             </div>
           </div>
           <div>
-            <p className="mb-1.5 text-sm font-semibold">학생에게 보일 분석 방법</p>
+            <h3 className="mb-2 text-[15px] font-semibold">학생에게 보일 분석 방법</h3>
             <div className="space-y-1">
               {METHODS.map((m) => (
                 <label key={m.key} className="flex items-center gap-2 text-sm">
@@ -260,20 +256,22 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
               ))}
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="accent-[var(--accent)]" checked={c.allowPeerView} onChange={(e) => patch({ allowPeerView: e.target.checked })} />
-            다른 모둠의 진행 상황 보기 허용 (읽기 전용)
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="accent-[var(--accent)]" checked={c.selfSelectGroup} onChange={(e) => patch({ selfSelectGroup: e.target.checked })} />
-            학생이 직접 모둠 고르기
-          </label>
-        </Card>
+          <div className="space-y-2 md:col-span-2">
+            <h3 className="mb-2 text-[15px] font-semibold">모둠</h3>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" className="accent-[var(--accent)]" checked={c.allowPeerView} onChange={(e) => patch({ allowPeerView: e.target.checked })} />
+              다른 모둠의 진행 상황 보기 허용 (읽기 전용)
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" className="accent-[var(--accent)]" checked={c.selfSelectGroup} onChange={(e) => patch({ selfSelectGroup: e.target.checked })} />
+              학생이 직접 모둠 고르기
+            </label>
+          </div>
+          </div>
+        </Section>
 
-        <Card className="p-5">
-          <h2 className="mb-1 font-bold">연구 자료 내보내기</h2>
-          <p className="mb-3 text-[13px] text-ink-3">엑셀에서 바로 열 수 있는 CSV(UTF-8)와 원자료 JSON이에요.</p>
-          <ul className="grid gap-2 sm:grid-cols-2">
+        <Section title="연구 자료 내보내기" desc="엑셀에서 바로 열 수 있는 CSV(UTF-8)와 원자료 JSON이에요.">
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {EXPORTS.map((e) => (
               <li key={e.type}>
                 <a
@@ -291,8 +289,8 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
               </li>
             ))}
           </ul>
-        </Card>
-      </div>
+        </Section>
+      </Sections>
 
       {progress ? (
         <section className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="학급 요약">

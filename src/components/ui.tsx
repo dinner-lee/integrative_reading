@@ -57,8 +57,8 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
     <input
       ref={ref}
       className={clsx(
-        "h-11 w-full rounded-[var(--field-radius)] border border-field-border bg-field px-3.5 text-[15px] text-ink shadow-[0_0_0_1px_var(--line)] placeholder:text-ink-3",
-        "focus:outline-none focus:shadow-[0_0_0_2px_var(--focus)] disabled:bg-paper-2",
+        "h-11 w-full rounded-[var(--field-radius)] bg-field px-3.5 text-[15px] text-ink shadow-[var(--field-shadow)] placeholder:text-ink-3",
+        "focus:outline-none focus:shadow-[var(--field-shadow),0_0_0_2px_var(--focus)] disabled:bg-paper-2 disabled:shadow-none",
         className,
       )}
       {...rest}
@@ -74,8 +74,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
     <textarea
       ref={ref}
       className={clsx(
-        "w-full rounded-[var(--field-radius)] border border-field-border bg-field px-3.5 py-2.5 text-[15px] leading-relaxed text-ink shadow-[0_0_0_1px_var(--line)] placeholder:text-ink-3",
-        "focus:outline-none focus:shadow-[0_0_0_2px_var(--focus)] disabled:bg-paper-2",
+        "w-full rounded-[var(--field-radius)] bg-field px-3.5 py-2.5 text-[15px] leading-relaxed text-ink shadow-[var(--field-shadow)] placeholder:text-ink-3",
+        "focus:outline-none focus:shadow-[var(--field-shadow),0_0_0_2px_var(--focus)] disabled:bg-paper-2 disabled:shadow-none",
         className,
       )}
       {...rest}
@@ -83,15 +83,16 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
   );
 });
 
+/** 입력란: 제목(h3 크기)과 도움말은 흰 입력 상자 바깥에 둔다. 요소는 <label>이라 입력과 연결된다. */
 export function Field({ label, hint, error, children, required }: { label: string; hint?: ReactNode; error?: string | null; children: ReactNode; required?: boolean }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-semibold text-ink">
+      <span className="mb-2 block text-[15px] font-semibold leading-snug text-ink">
         {label}
         {required ? <span className="ml-0.5 text-bad">*</span> : null}
       </span>
       {children}
-      {hint && !error ? <span className="mt-1 block text-[13px] text-ink-3">{hint}</span> : null}
+      {hint && !error ? <span className="mt-1.5 block text-sm text-ink-3">{hint}</span> : null}
       {error ? (
         <span className="mt-1 block text-[13px] text-bad" role="alert">
           {error}
@@ -283,15 +284,37 @@ export function Empty({ title, children, icon }: { title: string; children?: Rea
   );
 }
 
+/** 단계(화면) 제목 */
 export function SectionTitle({ title, desc, actions }: { title: string; desc?: ReactNode; actions?: ReactNode }) {
   return (
-    <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h2 className="text-xl font-bold tracking-tight">{title}</h2>
-        {desc ? <p className="mt-1 max-w-[65ch] text-sm text-ink-2">{desc}</p> : null}
+        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        {desc ? <p className="mt-1 max-w-[65ch] text-sm text-ink-3">{desc}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
     </div>
+  );
+}
+
+/** 섹션 묶음: 카드 대신 divider로 나눈다 */
+export function Sections({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={clsx("divide-y divide-line", className)}>{children}</div>;
+}
+
+/** 섹션: h2 제목 + 설명, 그 아래 입력란들 */
+export function Section({ title, desc, actions, children, className }: { title: string; desc?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string }) {
+  return (
+    <section className={clsx("py-8 first:pt-0 last:pb-0", className)}>
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-bold tracking-tight">{title}</h2>
+          {desc ? <p className="mt-0.5 max-w-[65ch] text-sm text-ink-3">{desc}</p> : null}
+        </div>
+        {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+      </div>
+      {children}
+    </section>
   );
 }
 

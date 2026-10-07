@@ -198,7 +198,7 @@ export function AnalyzeStage({ onGoNext }: { onGoNext?: () => void }) {
       <div className="grid gap-5 xl:grid-cols-[340px_1fr]">
         <aside className="space-y-4">
           {canEdit && cond ? (
-            <Card className="p-4">
+            <div className="pr-1">
               <ConditionsPanel
                 value={cond}
                 onChange={setCond}
@@ -215,7 +215,7 @@ export function AnalyzeStage({ onGoNext }: { onGoNext?: () => void }) {
                   {running ? null : <Play size={15} />} {running ? "분석하는 중…" : "분석하기"}
                 </Button>
               </div>
-            </Card>
+            </div>
           ) : null}
           <RunHistory
             runs={runs}
