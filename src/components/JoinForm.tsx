@@ -74,11 +74,11 @@ export function JoinForm({ initialCode, inline }: { initialCode?: string; inline
           autoCapitalize="characters"
           autoComplete="off"
           maxLength={10}
-          inputClassName="font-mono uppercase tracking-[0.18em]"
+          inputClassName="login-field font-mono uppercase tracking-[0.18em]"
           required
         />
       )}
-      <FloatField label="이름" hint="처음 들어올 때 쓴 이름을 똑같이 쓰면 이어서 할 수 있어요." value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" maxLength={20} required />
+      <FloatField label="이름" hint="처음 들어올 때 쓴 이름을 똑같이 쓰면 이어서 할 수 있어요." inputClassName="login-field" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" maxLength={20} required />
       {error ? <Notice tone="bad">{error}</Notice> : null}
       <Button type="submit" variant="primary" className="w-full" loading={loading}>
         들어가기

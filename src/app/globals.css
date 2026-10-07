@@ -387,7 +387,7 @@ h3 {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
-/* 교사 로그인 입력란: 흰 카드 위라 흰 입력란이 묻혀서, 회색 채움 + 그림자 없음 */
+/* 로그인·학급 입장 입력란: 흰 카드 위라 흰 입력란이 묻혀서, 회색 채움 + 그림자 없음 */
 .login-field {
   background: var(--paper-2);
   box-shadow: none;
