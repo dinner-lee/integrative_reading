@@ -31,10 +31,12 @@ export default function TeacherLogin() {
   return (
     <main className="flex min-h-dvh items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm card p-7 sm:p-8">
-        <Link href="/" className="inline-flex">
-          <Logo size={28} wordmark />
-        </Link>
-        <h1 className="mb-4 mt-1 text-xl font-bold">교사 화면</h1>
+        <div className="flex flex-col items-center text-center">
+          <Link href="/" className="inline-flex">
+            <Logo size={28} wordmark />
+          </Link>
+          <h1 className="mb-4 mt-1 text-xl font-bold">교사 화면</h1>
+        </div>
         <div className="mb-5">
           <Segmented
             value={mode}
@@ -48,14 +50,15 @@ export default function TeacherLogin() {
         <form onSubmit={submit} className="space-y-4">
           {mode === "signup" ? (
             <Field label="이름">
-              <Input value={form.name} onChange={set("name")} autoComplete="name" required />
+              <Input className="login-field" value={form.name} onChange={set("name")} autoComplete="name" required />
             </Field>
           ) : null}
           <Field label="이메일">
-            <Input type="email" value={form.email} onChange={set("email")} autoComplete="email" required />
+            <Input className="login-field" type="email" value={form.email} onChange={set("email")} autoComplete="email" required />
           </Field>
           <Field label="비밀번호" hint={mode === "signup" ? "8자 이상" : undefined}>
             <Input
+              className="login-field"
               type="password"
               value={form.password}
               onChange={set("password")}
@@ -65,7 +68,7 @@ export default function TeacherLogin() {
           </Field>
           {mode === "signup" ? (
             <Field label="교사 가입 코드" hint="관리자가 정한 코드가 있을 때만 적어요.">
-              <Input value={form.signupCode} onChange={set("signupCode")} autoComplete="off" />
+              <Input className="login-field" value={form.signupCode} onChange={set("signupCode")} autoComplete="off" />
             </Field>
           ) : null}
           {error ? <Notice tone="bad">{error}</Notice> : null}

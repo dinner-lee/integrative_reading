@@ -67,14 +67,14 @@ export function WriteStage() {
   }
 
   return (
-    <div className="card overflow-hidden">
+    <div className="card overflow-clip">
       <div className="flex min-h-[calc(100dvh-140px)]">
         {!mobile ? (
           <motion.aside
             initial={false}
             animate={{ width: sidebar ? SIDEBAR_W : 0 }}
             transition={springs.default}
-            className="shrink-0 overflow-hidden bg-panel"
+            className="shrink-0 overflow-clip bg-panel"
             aria-hidden={!sidebar}
           >
             <div className="sticky top-[84px] h-[calc(100dvh-100px)]" style={{ width: SIDEBAR_W }}>
