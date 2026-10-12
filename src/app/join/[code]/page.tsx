@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { JoinForm } from "@/components/JoinForm";
+import { LoginBackdrop } from "@/components/LoginBackdrop";
 import { Logo } from "@/components/Logo";
 import { db } from "@/lib/db";
 
@@ -14,7 +15,8 @@ export default async function JoinPage({ params }: { params: Promise<{ code: str
   });
 
   return (
-    <main className="flex min-h-dvh items-center justify-center px-4 py-10">
+    <main className="relative isolate flex min-h-dvh items-center justify-center px-4 py-10">
+      <LoginBackdrop />
       <div className="w-full max-w-sm card p-7 sm:p-8">
         {classroom && !classroom.archived ? (
           <>
