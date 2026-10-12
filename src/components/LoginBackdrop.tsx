@@ -1,18 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import NebulaDrift from "./NebulaDrift";
+import FlowField from "./FlowField";
 
 /**
- * 로그인·학급 입장 화면의 배경: 화면 전체에 깔리는 Nebula Drift.
- * 가산 블렌딩이라 밝은 바탕에서는 보이지 않으므로 두 모드 모두 깊은 남색 바탕을 쓰되,
- * 어두운 모드는 앱의 어두운 바탕(oklch 12%)에 가깝게, 밝은 모드는 조금 밝은 남색으로 둔다.
- * 염료·입자 색은 앱의 강조색(파랑, 색상각 254)과 같은 계열이다.
+ * 로그인·학급 입장 화면의 배경: 화면 전체에 깔리는 Flow Field(새틴 결 무늬).
+ * 밝은 모드는 Originkit 프리셋 그대로(연회색 바탕 + 앱 강조색 계열 파랑 결), 어두운 모드는 깊은 남색 바탕.
+ * 움직임 줄이기 설정이면 속도 0으로 정지 화면만 둔다.
  */
-// slow(정지 입자)는 바탕에 가깝게 가라앉혀 점 무늬가 두드러지지 않게 하고, 움직이는 흐름(fast)과 반짝임(glint)만 파랗게 빛난다
 const PALETTE = {
-  light: { background: "#1b2342", slow: "#232f5c", fast: "#4a93ff", glint: "#cfe8ff" },
-  dark: { background: "#0a0d16", slow: "#121a35", fast: "#2f7cf6", glint: "#a9dcff" },
+  light: { background: "#F0F1F2", baseColor: "#3E77D8", accentColor: "#BBD4FF" },
+  dark: { background: "#0A1330", baseColor: "#2F5FC4", accentColor: "#9CC2FF" },
 } as const;
 
 function useDarkMode() {
@@ -36,20 +34,33 @@ function useDarkMode() {
   return dark;
 }
 
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const on = () => setReduced(mq.matches);
+    on();
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  return reduced;
+}
+
 export function LoginBackdrop() {
   const dark = useDarkMode();
+  const reduced = useReducedMotion();
   const c = dark ? PALETTE.dark : PALETTE.light;
   return (
     <div className="pointer-events-none fixed inset-0 -z-10" aria-hidden>
-      <NebulaDrift
+      <FlowField
+        variant="satin"
         background={c.background}
-        colors={{ slow: c.slow, fast: c.fast, glint: c.glint }}
-        particles={{ count: 5, size: 1.3, inertia: 2 }}
-        dye={{ show: true, fade: 4 }}
-        strength={4}
-        detail={4}
-        iterations={14}
-        style={{ pointerEvents: "auto" }}
+        baseColor={c.baseColor}
+        accentColor={c.accentColor}
+        speed={reduced ? 0 : 100}
+        hover={10}
+        // 원본은 최소 1200×800을 강제하므로 전체 화면 배경용으로 푼다
+        style={{ position: "absolute", inset: 0, minWidth: 0, minHeight: 0, width: "100%", height: "100%", pointerEvents: "auto" }}
       />
     </div>
   );
