@@ -1,9 +1,9 @@
 "use client";
 
 import { Lightbulb } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Notice, clsx, clusterColor } from "../../ui";
-import type { Material, Morpheme, RunResult } from "../types";
+import type { Morpheme, RunResult } from "../types";
 
 export function Think({ children }: { children: React.ReactNode }) {
   return (
@@ -17,73 +17,24 @@ export function Think({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** 읽는 순서: 원문이 낱말로 → 낱말 점수 → 자료 사이 거리 → 묶음 → 지도 */
-/** 대시보드 한 칸: 채움 없는 회색 선 상자 + 소제목 */
-function Panel({ title, desc, className, children }: { title: string; desc?: string; className?: string; children: React.ReactNode }) {
-  return (
-    <section className={clsx("panel min-w-0 px-5 py-5 sm:px-6", className)} aria-labelledby={`rp-${title}`}>
-      <h2 id={`rp-${title}`} className="text-base font-bold tracking-tight">
-        {title}
-      </h2>
-      {desc ? <p className="mt-0.5 text-[13px] text-ink-3">{desc}</p> : null}
-      <div className="mt-4">{children}</div>
-    </section>
-  );
-}
+/** 창끼리 이어지는 선택: 한 창에서 자료를 고르면 다른 창에서도 같은 자료가 강조된다 */
+export type Sel = { selected?: string | null; onSelect?: (id: string) => void };
 
-export function ResultView({
-  result,
-  materials,
-  onOpenMaterial,
-  onAddStopword,
-  runId,
-}: {
-  result: RunResult;
-  materials: Material[];
-  onOpenMaterial: (m: Material) => void;
-  onAddStopword?: (w: string) => void;
-  runId: string;
-}) {
-  const byId = useMemo(() => new Map(materials.map((m) => [m.id, m])), [materials]);
-  const open = (id: string) => {
-    const m = byId.get(id);
-    if (m) onOpenMaterial(m);
-  };
-
+/** 분석 결과의 경고(자료가 적음 등) */
+export function Warnings({ result }: { result: RunResult }) {
+  if (!result.warnings.length) return null;
   return (
-    <div data-run={runId}>
-      {result.warnings.length ? (
-        <div className="mb-4 space-y-2">
-          {result.warnings.map((w, i) => (
-            <Notice key={i} tone="warn">
-              {w}
-            </Notice>
-          ))}
-        </div>
-      ) : null}
-      {/* 탭 대신 대시보드: 읽는 순서대로 다섯 칸, 넓은 화면에선 두 열 */}
-      <div className="grid gap-5 xl:grid-cols-2">
-        <Panel title="1 전처리 결과" desc="원문이 분석용 낱말로 어떻게 바뀌었는지" className="xl:col-span-2">
-          <PreprocessResult result={result} />
-        </Panel>
-        <Panel title="2 낱말 점수" desc="자료마다 어떤 낱말이 중요하게 계산됐는지">
-          <TermTable result={result} open={open} />
-        </Panel>
-        <Panel title="3 자료 사이 거리" desc="낱말 점수가 비슷한 자료일수록 가까워요">
-          <Similarity result={result} />
-        </Panel>
-        <Panel title="4 묶음" desc="함께 묶인 자료와 대표 낱말" className="xl:col-span-2">
-          <Clusters result={result} open={open} onAddStopword={onAddStopword} />
-        </Panel>
-        <Panel title="5 자료 지도" desc="자료를 2차원에 펼쳐 묶음을 한눈에" className="xl:col-span-2">
-          <MapView result={result} open={open} />
-        </Panel>
-      </div>
+    <div className="space-y-2">
+      {result.warnings.map((w, i) => (
+        <Notice key={i} tone="warn">
+          {w}
+        </Notice>
+      ))}
     </div>
   );
 }
 
-function Clusters({ result, open, onAddStopword }: { result: RunResult; open: (id: string) => void; onAddStopword?: (w: string) => void }) {
+export function Clusters({ result, open, onAddStopword, selected, onSelect }: { result: RunResult; open: (id: string) => void; onAddStopword?: (w: string) => void } & Sel) {
   const docs = new Map(result.docs.map((d) => [d.id, d]));
   const isLda = result.method === "lda";
   const maxW = Math.max(...result.clusters.flatMap((c) => c.terms.map((t) => t.weight)), 0.0001);
@@ -94,7 +45,7 @@ function Clusters({ result, open, onAddStopword }: { result: RunResult; open: (i
           ? "LDA는 자료마다 여러 주제가 섞여 있다고 봐요. 아래는 가장 비중이 큰 주제로만 나눈 모습이에요. 막대를 보고 주제가 섞인 자료를 찾아보세요."
           : "같은 묶음에 들어간 자료를 원문과 비교해 보세요. 왜 함께 묶였을까요? 낱말은 비슷하지만 글의 목적에는 맞지 않는 자료는 없나요?"}
       </Think>
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))]">
         {result.clusters.map((c) => (
           <div key={c.id} className="card-sm p-4" style={{ borderTop: `4px solid ${clusterColor(c.id)}` }}>
             <div className="mb-2 flex items-center justify-between">
@@ -129,7 +80,12 @@ function Clusters({ result, open, onAddStopword }: { result: RunResult; open: (i
                 const d = docs.get(id)!;
                 return (
                   <li key={id}>
-                    <button onClick={() => open(id)} className="w-full text-left text-sm hover:text-accent">
+                    <button
+                      onClick={() => (onSelect ? onSelect(id) : open(id))}
+                      onDoubleClick={() => open(id)}
+                      aria-pressed={selected === id}
+                      className={clsx("w-full rounded-lg px-1.5 py-0.5 text-left text-sm hover:text-accent", selected === id && "bg-accent-soft text-accent")}
+                    >
                       <span className="font-medium">{d.title}</span>
                       {isLda && d.topicDist ? (
                         <TopicBar dist={d.topicDist} />
@@ -162,7 +118,7 @@ function TopicBar({ dist }: { dist: number[] }) {
 }
 
 
-function KChart({ result }: { result: RunResult }) {
+export function KChart({ result }: { result: RunResult }) {
   const max = Math.max(...result.kCandidates.map((c) => c.silhouette), 0.0001);
   return (
     <div className="card-sm p-4">
@@ -184,13 +140,28 @@ function KChart({ result }: { result: RunResult }) {
   );
 }
 
-function MapView({ result, open }: { result: RunResult; open: (id: string) => void }) {
+export function MapView({ result, open, selected, onSelect }: { result: RunResult; open: (id: string) => void } & Sel) {
   const [hover, setHover] = useState<string | null>(null);
   const W = 640;
   const H = 400;
   const pad = 40;
   const x = (v: number) => pad + ((v + 1) / 2) * (W - pad * 2);
   const y = (v: number) => H - pad - ((v + 1) / 2) * (H - pad * 2);
+  // 거의 같은 자리에 찍힌 점들은 작은 원을 따라 살짝 벌려 그려, 가려진 자료도 고를 수 있게 한다
+  const spot = new Map<string, [number, number]>();
+  const buckets = new Map<string, string[]>();
+  result.docs.forEach((d) => {
+    const k = `${Math.round(x(d.coords[0]) / 6)}:${Math.round(y(d.coords[1]) / 6)}`;
+    buckets.set(k, [...(buckets.get(k) ?? []), d.id]);
+  });
+  result.docs.forEach((d) => {
+    const k = `${Math.round(x(d.coords[0]) / 6)}:${Math.round(y(d.coords[1]) / 6)}`;
+    const ids = buckets.get(k)!;
+    const i = ids.indexOf(d.id);
+    const a = (i / ids.length) * Math.PI * 2 - Math.PI / 2;
+    const r = ids.length > 1 ? 14 : 0;
+    spot.set(d.id, [x(d.coords[0]) + Math.cos(a) * r, y(d.coords[1]) + Math.sin(a) * r]);
+  });
   return (
     <div className="space-y-3">
       <Think>
@@ -198,25 +169,29 @@ function MapView({ result, open }: { result: RunResult; open: (id: string) => vo
         색인데 멀리 떨어진 자료를 찾아 원문을 비교해 보세요.
       </Think>
       <div className="card-sm overflow-x-auto">
-        <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full min-w-[480px]" role="img" aria-label="자료 지도">
+        <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full min-w-[360px]" role="group" aria-label="자료 지도">
           <line x1={W / 2} x2={W / 2} y1={pad / 2} y2={H - pad / 2} stroke="var(--line)" />
           <line y1={H / 2} y2={H / 2} x1={pad / 2} x2={W - pad / 2} stroke="var(--line)" />
-          {result.docs.map((d) => {
-            const cx = x(d.coords[0]);
-            const cy = y(d.coords[1]);
-            const active = hover === d.id;
+          {/* 고른 점·마우스가 올라간 점을 맨 위에 그린다 */}
+          {[...result.docs].sort((p, q) => Number(p.id === selected || p.id === hover) - Number(q.id === selected || q.id === hover)).map((d) => {
+            const [cx, cy] = spot.get(d.id)!;
+            const isSel = selected === d.id;
+            const active = hover === d.id || isSel;
             return (
               <g
                 key={d.id}
                 onMouseEnter={() => setHover(d.id)}
                 onMouseLeave={() => setHover(null)}
-                onClick={() => open(d.id)}
+                onClick={() => (onSelect ? onSelect(d.id) : open(d.id))}
+                onDoubleClick={() => open(d.id)}
                 className="cursor-pointer"
                 tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && open(d.id)}
+                aria-label={d.title}
+                onKeyDown={(e) => e.key === "Enter" && (onSelect ? onSelect(d.id) : open(d.id))}
               >
+                {isSel ? <circle cx={cx} cy={cy} r={16} fill="none" stroke="var(--accent)" strokeWidth={2.5} /> : null}
                 <circle cx={cx} cy={cy} r={active ? 10 : 8} fill={clusterColor(d.cluster)} fillOpacity={0.85} stroke="#fff" strokeWidth={2} />
-                <text x={cx + 12} y={cy + 4} fontSize={active ? 13 : 11.5} fill="var(--ink)" fontWeight={active ? 700 : 500}>
+                <text x={cx + 12} y={cy + 4} fontSize={active ? 13 : 11.5} fill="var(--ink)" fontWeight={active ? 700 : 500} pointerEvents="none">
                   {d.title.length > 16 && !active ? d.title.slice(0, 15) + "…" : d.title}
                 </text>
               </g>
@@ -236,8 +211,9 @@ function MapView({ result, open }: { result: RunResult; open: (id: string) => vo
   );
 }
 
-function TermTable({ result, open }: { result: RunResult; open: (id: string) => void }) {
-  const [docId, setDocId] = useState(result.docs[0]?.id);
+export function TermTable({ result, open, selected, onSelect }: { result: RunResult; open: (id: string) => void } & Sel) {
+  const [local, setLocal] = useState(result.docs[0]?.id);
+  const docId = selected && result.docs.some((x) => x.id === selected) ? selected : local;
   const d = result.docs.find((x) => x.id === docId) ?? result.docs[0];
   const isTfidf = result.method === "tfidf_kmeans";
   const max = Math.max(...(d?.topTerms.map((t) => t.weight) ?? [1]), 0.0001);
@@ -258,7 +234,7 @@ function TermTable({ result, open }: { result: RunResult; open: (id: string) => 
         {result.docs.map((x) => (
           <button
             key={x.id}
-            onClick={() => setDocId(x.id)}
+            onClick={() => (onSelect ? onSelect(x.id) : setLocal(x.id))}
             className={clsx(
               "max-w-[16rem] truncate rounded-full border px-3 py-1 text-[13px]",
               x.id === d.id ? "border-primary bg-primary font-semibold text-on-primary" : "border-line-strong text-ink-2 hover:bg-paper-2",
@@ -269,7 +245,7 @@ function TermTable({ result, open }: { result: RunResult; open: (id: string) => 
         ))}
       </div>
       <div className="card-sm overflow-x-auto">
-        <table className="w-full min-w-[420px] text-sm">
+        <table className="w-full min-w-[320px] text-sm">
           <thead className="bg-surface-2 text-left text-[13px] text-ink-2">
             <tr>
               <th className="px-3 py-2 font-semibold">낱말</th>
@@ -304,8 +280,9 @@ function TermTable({ result, open }: { result: RunResult; open: (id: string) => 
   );
 }
 
-function Similarity({ result }: { result: RunResult }) {
+export function Similarity({ result, selected, onSelect }: { result: RunResult } & Sel) {
   const n = result.docs.length;
+  const si = result.docs.findIndex((d) => d.id === selected);
   const [cell, setCell] = useState<[number, number] | null>(null);
   return (
     <div className="space-y-3">
@@ -328,8 +305,10 @@ function Similarity({ result }: { result: RunResult }) {
           <tbody>
             {result.docs.map((d, i) => (
               <tr key={d.id}>
-                <th className="max-w-[12rem] truncate pr-2 text-left font-medium" title={d.title}>
-                  {i + 1}. {d.title}
+                <th className={clsx("max-w-[12rem] truncate pr-2 text-left font-medium", i === si && "text-accent")} title={d.title}>
+                  <button type="button" onClick={() => onSelect?.(d.id)} className="max-w-full truncate text-left hover:text-accent">
+                    {i + 1}. {d.title}
+                  </button>
                 </th>
                 {result.similarity[i].map((v, j) => (
                   <td
@@ -340,6 +319,7 @@ function Similarity({ result }: { result: RunResult }) {
                     style={{
                       background: i === j ? "var(--paper-2)" : `rgba(47, 91, 234, ${Math.max(0, Math.min(1, v)) * 0.9})`,
                       color: v > 0.55 && i !== j ? "#fff" : "var(--ink-2)",
+                      boxShadow: si >= 0 && (i === si || j === si) ? "inset 0 0 0 2px var(--accent)" : undefined,
                     }}
                   >
                     {i === j ? "" : v.toFixed(2)}
@@ -400,8 +380,9 @@ export function MorphemeStrip({ morphemes }: { morphemes: Morpheme[] }) {
   );
 }
 
-function PreprocessResult({ result }: { result: RunResult }) {
-  const [id, setId] = useState(result.preprocessing[0]?.id);
+export function PreprocessResult({ result, selected, onSelect }: { result: RunResult } & Sel) {
+  const [local, setLocal] = useState(result.preprocessing[0]?.id);
+  const id = selected && result.preprocessing.some((x) => x.id === selected) ? selected : local;
   const p = result.preprocessing.find((x) => x.id === id) ?? result.preprocessing[0];
   if (!p) return null;
   const s = p.stats;
@@ -415,7 +396,7 @@ function PreprocessResult({ result }: { result: RunResult }) {
         {result.preprocessing.map((x) => (
           <button
             key={x.id}
-            onClick={() => setId(x.id)}
+            onClick={() => (onSelect ? onSelect(x.id) : setLocal(x.id))}
             className={clsx(
               "max-w-[16rem] truncate rounded-full border px-3 py-1 text-[13px]",
               x.id === p.id ? "border-primary bg-primary font-semibold text-on-primary" : "border-line-strong text-ink-2 hover:bg-paper-2",
@@ -445,7 +426,7 @@ export function PreprocessStats({ stats: s }: { stats: RunResult["preprocessing"
     ["분석에 쓴 낱말", s.kept],
   ] as const;
   return (
-    <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+    <div className="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(96px,1fr))]">
       {items.map(([label, v], i) => (
         <div key={label} className={clsx("rounded-lg px-3 py-2", i === items.length - 1 ? "bg-accent-soft text-accent" : "bg-paper-2")}>
           <p className="text-[11px] text-ink-3">{label}</p>
@@ -463,7 +444,7 @@ export function RemovedLists({ removed }: { removed: RunResult["preprocessing"][
     ["너무 짧아서 빠진 낱말", removed.length],
   ] as const;
   return (
-    <div className="grid gap-3 md:grid-cols-3">
+    <div className="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
       {groups.map(([label, list]) => (
         <div key={label} className="rounded-xl bg-paper-2/70 p-3">
           <p className="mb-2 text-[13px] font-semibold">{label}</p>

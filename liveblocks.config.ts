@@ -31,6 +31,14 @@ export type SectionData = {
 
 export type MemberPlan = { purpose: string; audience: string; questions: string };
 
+/** 모둠이 함께 쓰는 분석 조건. 자료는 '뺀 자료'만 적어 두어, 나중에 등록한 자료는 자동으로 들어간다 */
+export type SharedConditions = {
+  method: "tfidf_kmeans" | "lda" | "bertopic";
+  excludedIds: string[];
+  preprocess: { pos: "nouns" | "nouns_verbs" | "content"; stopwords: string[]; minLength: number };
+  mining: { k: number | null; minDf: number; maxDf: number; ngram: 1 | 2 };
+};
+
 declare global {
   interface Liveblocks {
     Presence: {
@@ -48,6 +56,8 @@ declare global {
       outline: LiveList<LiveObject<SectionData>>;
       /** 편집기 field별 글 제목 (예전 방에는 없을 수 있음) */
       titles?: LiveMap<string, string>;
+      /** 분석 조건 (예전 방에는 없을 수 있음) */
+      analysis?: LiveObject<{ cond: SharedConditions | null }>;
     };
     UserMeta: {
       id: string;

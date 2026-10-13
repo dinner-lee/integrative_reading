@@ -12,11 +12,11 @@ import { METHODS } from "@/lib/stages";
 import type { Decision } from "../../../../liveblocks.config";
 import { springs } from "../../motion";
 import { Badge, Button, Collapse, Empty, Input, Notice, Spinner, Textarea, clsx, clusterColor } from "../../ui";
+import type { Sel } from "../analysis/ResultView";
 import { userKey, useRoomCtx } from "../context";
 import { Discussion, DiscussionCount } from "../Discussion";
 import { DraggableItem, dropClass, useDragToDrop } from "../dnd";
 import { useMaterials } from "../hooks";
-import { MaterialDetail } from "../MaterialDetail";
 import { PlanSummary } from "../PlanSummary";
 import { FocusDots } from "../Presence";
 import type { Material } from "../types";
@@ -27,9 +27,30 @@ export const DECISIONS: { value: Decision; label: string; tone: "ok" | "warn" | 
   { value: "excluded", label: "제외", tone: "bad", prompt: "왜 쓰지 않는지(목적·신뢰성·중복 등)" },
 ];
 
-/** 분석 단계의 ⑤ 이름·선별로 쓰인다 */
-export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
-  const { groupId, canEdit, viewer } = useRoomCtx();
+/** 자료마다 선정·보류·제외와 근거를 저장한다 (자료 표 창에서 쓴다) */
+export function useSetDecision() {
+  const { viewer } = useRoomCtx();
+  const me = userKey(viewer.role, viewer.id);
+  return useMutation(
+    ({ storage }, materialId: string, patch: { status?: Decision; reason?: string }) => {
+      const map = storage.get("decisions");
+      let d = map.get(materialId);
+      if (!d) {
+        d = new LiveObject({ status: "undecided" as Decision, reason: "", updatedBy: me, updatedAt: Date.now() });
+        map.set(materialId, d);
+      }
+      d.update({ ...patch, updatedBy: me, updatedAt: Date.now() });
+      if (patch.status !== undefined) track("decision.set", { materialId, status: patch.status }, { stage: "generate" });
+      if (patch.reason !== undefined)
+        trackDebounced(`reason:${materialId}`, "decision.reason", { materialId, reason: patch.reason, status: d.get("status") }, { stage: "generate" });
+    },
+    [me],
+  );
+}
+
+/** 분석 작업대의 '묶음 판' 창: 묶음 이름·메모·우선순위, 묶음 사이로 자료 옮기기, 모둠 논의 */
+export function ClusterBoard({ onStartAnalysis, onOpen, selected, onSelect }: { onStartAnalysis?: () => void; onOpen: (m: Material) => void } & Sel) {
+  const { groupId, canEdit } = useRoomCtx();
   const { materials } = useMaterials(groupId);
   // 읽기 전용으로 아직 만들어지지 않은 방을 열면 저장소가 비어 있을 수 있다
   const clustersRaw = useStorage((root) => root.clusters ?? null);
@@ -37,9 +58,7 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
   const decisions = useStorage((root) => root.decisions);
   const board = useStorage((root) => root.board);
   const updatePresence = useUpdateMyPresence();
-  const [viewing, setViewing] = useState<Material | null>(null);
   const byId = useMemo(() => new Map((materials ?? []).map((m) => [m.id, m])), [materials]);
-  const me = userKey(viewer.role, viewer.id);
 
   const placed = new Set(clusters.flatMap((c) => c.materialIds));
   const unplaced = (materials ?? []).filter((m) => !placed.has(m.id));
@@ -81,22 +100,6 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
     track("cluster.reorder", { clusterId: id, from, to, via: "drag" }, { stage: "generate" });
   }, []);
 
-  const setDecision = useMutation(
-    ({ storage }, materialId: string, patch: { status?: Decision; reason?: string }) => {
-      const map = storage.get("decisions");
-      let d = map.get(materialId);
-      if (!d) {
-        d = new LiveObject({ status: "undecided" as Decision, reason: "", updatedBy: me, updatedAt: Date.now() });
-        map.set(materialId, d);
-      }
-      d.update({ ...patch, updatedBy: me, updatedAt: Date.now() });
-      if (patch.status !== undefined) track("decision.set", { materialId, status: patch.status }, { stage: "generate" });
-      if (patch.reason !== undefined)
-        trackDebounced(`reason:${materialId}`, "decision.reason", { materialId, reason: patch.reason, status: d.get("status") }, { stage: "generate" });
-    },
-    [me],
-  );
-
   // 자료를 다른 묶음에 놓기 (놓은 자리가 같은 묶음이면 무시)
   const onDrop = useCallback(
     (materialId: string, targetId: string) => {
@@ -129,28 +132,17 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
   const clusterById = new Map(clusters.map((c) => [c.id, c]));
 
   return (
-    <div className="panel px-6 py-6 sm:px-8 sm:py-7">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-bold tracking-tight">묶음에 이름 붙이고 자료 고르기</h2>
-          <p className="mt-0.5 text-sm text-ink-3">묶음을 원문과 대조해 이름을 붙이고 우선순위를 정해요. 자료마다 선정·보류·제외를 고르고 근거를 적어요.</p>
-        </div>
-        {canEdit && clusters.length ? (
-          <Button onClick={addCluster}>
-            <Plus size={15} /> 새 묶음
-          </Button>
-        ) : null}
-      </div>
-      <PlanSummary className="mb-4" />
+    <div>
+      <PlanSummary className="mb-3" />
 
       {clusters.length === 0 ? (
         <Empty title="아직 묶음이 없어요">
-          <p>4 비교·채택에서 결과 하나를 골라 ‘이 결과로 이름 붙이기’를 눌러요.</p>
+          <p>분석 결과 하나를 골라 ‘이 결과로 이름 붙이기’를 눌러요.</p>
           {canEdit ? (
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              {onGoAnalyze ? (
-                <Button variant="primary" onClick={onGoAnalyze}>
-                  묶기로 가기
+              {onStartAnalysis ? (
+                <Button variant="primary" onClick={onStartAnalysis}>
+                  묶기 조건 열기
                 </Button>
               ) : null}
               <Button onClick={() => startManual(materials.map((m) => m.id))} disabled={!materials.length}>
@@ -161,9 +153,14 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
         </Empty>
       ) : (
         <>
-          <div className="mb-4 flex flex-wrap items-center gap-2 text-sm">
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+            {canEdit ? (
+              <Button size="sm" onClick={addCluster}>
+                <Plus size={14} /> 새 묶음
+              </Button>
+            ) : null}
             {board?.runId ? (
-              <span className="text-ink-3">
+              <span className="text-[12.5px] text-ink-3">
                 {METHODS.find((m) => m.key === board.method)?.short} 결과에서 시작 · {board.adoptedBy}
               </span>
             ) : null}
@@ -181,7 +178,7 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
               {unplaced.map((m, i) => (
                 <span key={m.id}>
                   {i ? ", " : ""}
-                  <button className="underline" onClick={() => setViewing(m)}>
+                  <button className="underline" onClick={() => onOpen(m)}>
                     {m.title}
                   </button>
                   {canEdit ? (
@@ -205,7 +202,7 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
           ) : null}
 
           <LayoutGroup id={`gen-${groupId}`}>
-            <Reorder.Group as="ol" axis="y" values={order} onReorder={setLocalOrder} className="space-y-4">
+            <Reorder.Group as="ol" axis="y" values={order} onReorder={setLocalOrder} className="space-y-3">
               {order.map((id, i) => {
                 const c = clusterById.get(id);
                 if (!c) return null;
@@ -219,10 +216,11 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
                     decisions={decisions}
                     canEdit={canEdit}
                     allClusters={clusters.map((x) => ({ id: x.id, name: x.name }))}
-                    onOpen={setViewing}
+                    onOpen={onOpen}
+                    selected={selected ?? null}
+                    onSelect={onSelect}
                     onMove={moveMaterial}
                     onMoveCluster={(dir) => moveCluster(id, i + dir)}
-                    onDecision={setDecision}
                     dnd={dnd}
                     onReorderStart={() => setLocalOrder(liveOrder)}
                     onReorderEnd={() => commitOrder(id)}
@@ -234,7 +232,6 @@ export function GenerateStage({ onGoAnalyze }: { onGoAnalyze?: () => void }) {
           </LayoutGroup>
         </>
       )}
-      <MaterialDetail material={viewing} onClose={() => setViewing(null)} stage="generate" />
     </div>
   );
 }
@@ -250,9 +247,10 @@ function ClusterCard({
   canEdit,
   allClusters,
   onOpen,
+  selected,
+  onSelect,
   onMove,
   onMoveCluster,
-  onDecision,
   dnd,
   onReorderStart,
   onReorderEnd,
@@ -266,9 +264,10 @@ function ClusterCard({
   canEdit: boolean;
   allClusters: { id: string; name: string }[];
   onOpen: (m: Material) => void;
+  selected: string | null;
+  onSelect?: (id: string) => void;
   onMove: (materialId: string, to: string) => void;
   onMoveCluster: (dir: -1 | 1) => void;
-  onDecision: (materialId: string, patch: { status?: Decision; reason?: string }) => void;
   dnd: ReturnType<typeof useDragToDrop>;
   onReorderStart: () => void;
   onReorderEnd: () => void;
@@ -403,17 +402,17 @@ function ClusterCard({
             if (!m) return null;
             const d = decisions?.[id];
             return (
-              <DraggableItem key={id} id={id} layoutId={`mat-${id}`} enabled={canEdit} handlers={dnd.handlers(id)} className={clsx("bg-surface", d?.status === "excluded" && "bg-surface-2")}>
+              <DraggableItem key={id} id={id} layoutId={`mat-${id}`} enabled={canEdit} handlers={dnd.handlers(id)} className={clsx("bg-surface", d?.status === "excluded" && "bg-surface-2", selected === id && "!bg-accent-soft/50")}>
                 <MaterialRow
                   m={m}
                   status={d?.status ?? "undecided"}
-                  reason={d?.reason ?? ""}
                   canEdit={canEdit}
                   clusterId={c.id}
                   allClusters={allClusters}
+                  active={selected === id}
+                  onSelect={() => (onSelect ? onSelect(id) : onOpen(m))}
                   onOpen={() => onOpen(m)}
                   onMove={(to) => onMove(id, to)}
-                  onDecision={(p) => onDecision(id, p)}
                 />
               </DraggableItem>
             );
@@ -424,102 +423,71 @@ function ClusterCard({
   );
 }
 
+const STATUS_CHIP: Record<Decision, string> = {
+  selected: "bg-ok-soft text-ok",
+  hold: "bg-warn-soft text-warn-ink",
+  excluded: "bg-bad-soft text-bad",
+  undecided: "bg-paper-2 text-ink-3",
+};
+
+/** 묶음 안 자료 한 줄: 끌어 옮기기, 고르기(다른 창과 연결), 원문 보기, 판단 상태 표시 */
 function MaterialRow({
   m,
   status,
-  reason,
   canEdit,
   clusterId,
   allClusters,
+  active,
+  onSelect,
   onOpen,
   onMove,
-  onDecision,
 }: {
   m: Material;
   status: Decision;
-  reason: string;
   canEdit: boolean;
   clusterId: string;
   allClusters: { id: string; name: string }[];
+  active: boolean;
+  onSelect: () => void;
   onOpen: () => void;
   onMove: (to: string) => void;
-  onDecision: (p: { status?: Decision; reason?: string }) => void;
 }) {
-  const def = DECISIONS.find((d) => d.value === status);
+  const label = DECISIONS.find((d) => d.value === status)?.label ?? "아직";
   return (
-    <div className="px-4 py-3">
-      <div className="flex flex-wrap items-center gap-2">
-        {canEdit ? <GripVertical size={15} className="shrink-0 text-ink-3" aria-hidden /> : null}
-        <button
-          onClick={onOpen}
-          onPointerDown={(e) => e.stopPropagation()}
-          className={clsx("min-w-0 flex-1 text-left text-sm font-semibold hover:text-accent", status === "excluded" && "text-ink-3 line-through")}
-        >
-          {m.title}
-          <span className="ml-2 text-xs font-normal text-ink-3">
-            {m.isOnline ? "온라인" : "오프라인"} {mediaLabel(m.mediaType)}
-            {m.source ? `, ${m.source}` : ""}
-          </span>
-        </button>
-        <div className="flex items-center gap-1" role="radiogroup" aria-label="판단" onPointerDown={(e) => e.stopPropagation()}>
-          {DECISIONS.map((d) => (
-            <button
-              key={d.value}
-              role="radio"
-              aria-checked={status === d.value}
-              disabled={!canEdit}
-              onClick={() => onDecision({ status: status === d.value ? "undecided" : d.value })}
-              className={clsx(
-                "pressable h-7 rounded-full px-3 text-[13px] font-medium disabled:cursor-default",
-                status === d.value
-                  ? d.tone === "ok"
-                    ? "bg-ok text-on-accent"
-                    : d.tone === "warn"
-                      ? "bg-warn text-on-accent"
-                      : "bg-bad text-on-accent"
-                  : "bg-paper-2 text-ink-2 hover:bg-paper-3",
-              )}
-            >
-              {d.label}
-            </button>
-          ))}
-          {canEdit && allClusters.length > 1 ? (
-            <label className="relative ml-1 inline-flex items-center text-ink-3" title="다른 묶음으로 옮기기">
-              <select
-                value=""
-                onChange={(e) => e.target.value && onMove(e.target.value)}
-                className="h-7 w-7 cursor-pointer appearance-none rounded-full bg-paper-2 text-transparent"
-                aria-label="다른 묶음으로 옮기기"
-              >
-                <option value="">옮기기</option>
-                {allClusters
-                  .filter((x) => x.id !== clusterId)
-                  .map((x) => (
-                    <option key={x.id} value={x.id} className="text-ink">
-                      → {x.name || "이름 없는 묶음"}
-                    </option>
-                  ))}
-              </select>
-              <ChevronDown size={14} className="pointer-events-none absolute left-1.5" />
-            </label>
-          ) : null}
-        </div>
-      </div>
-      <Collapse open={status !== "undecided"}>
-        <div className="mt-2 pl-6" onPointerDown={(e) => e.stopPropagation()}>
-          {canEdit ? (
-            <Input
-              value={reason}
-              onChange={(e) => onDecision({ reason: e.target.value })}
-              placeholder={`근거: ${def?.prompt}`}
-              maxLength={500}
-              className="h-8 text-sm"
-            />
-          ) : (
-            <p className="text-sm text-ink-2">근거: {reason || "아직 없음"}</p>
-          )}
-        </div>
-      </Collapse>
+    <div className="flex items-center gap-2 px-3 py-2">
+      {canEdit ? <GripVertical size={14} className="shrink-0 text-ink-3" aria-hidden /> : null}
+      <button
+        onClick={onSelect}
+        onDoubleClick={onOpen}
+        onPointerDown={(e) => e.stopPropagation()}
+        aria-pressed={active}
+        title="눌러서 고르기, 두 번 눌러서 원문 보기"
+        className={clsx("min-w-0 flex-1 truncate text-left text-[13.5px] font-medium hover:text-accent", status === "excluded" && "text-ink-3 line-through", active && "text-accent")}
+      >
+        {m.title}
+        <span className="ml-1.5 text-xs font-normal text-ink-3">{m.source || mediaLabel(m.mediaType)}</span>
+      </button>
+      <span className={clsx("shrink-0 rounded-full px-2 py-0.5 text-[11.5px] font-semibold", STATUS_CHIP[status])}>{label}</span>
+      {canEdit && allClusters.length > 1 ? (
+        <label className="relative inline-flex shrink-0 items-center text-ink-3" title="다른 묶음으로 옮기기" onPointerDown={(e) => e.stopPropagation()}>
+          <select
+            value=""
+            onChange={(e) => e.target.value && onMove(e.target.value)}
+            className="h-7 w-7 cursor-pointer appearance-none rounded-full bg-paper-2 text-transparent"
+            aria-label="다른 묶음으로 옮기기"
+          >
+            <option value="">옮기기</option>
+            {allClusters
+              .filter((x) => x.id !== clusterId)
+              .map((x) => (
+                <option key={x.id} value={x.id} className="text-ink">
+                  → {x.name || "이름 없는 묶음"}
+                </option>
+              ))}
+          </select>
+          <ChevronDown size={14} className="pointer-events-none absolute left-1.5" />
+        </label>
+      ) : null}
     </div>
   );
 }

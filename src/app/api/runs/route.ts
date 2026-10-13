@@ -95,7 +95,7 @@ export const POST = handle(async (req: Request) => {
       materialIds: materials.map((m) => m.id),
       result: result as object,
     },
-    select: { id: true, createdAt: true },
+    include: { createdBy: { select: { id: true, name: true } } },
   });
   await logEvent({
     classroomId: st.classroomId,
@@ -115,5 +115,5 @@ export const POST = handle(async (req: Request) => {
       summary: summarize(result),
     },
   });
-  return NextResponse.json({ run: { id: run.id, createdAt: run.createdAt } });
+  return NextResponse.json({ run });
 });

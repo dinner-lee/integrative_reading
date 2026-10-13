@@ -78,6 +78,11 @@ export function useRun(runId: string | null) {
   return { run, error };
 }
 
+/** 방금 만든 분석 결과를 캐시에 넣어 두어 결과 창들이 바로 그린다 */
+export function primeRunCache(run: RunFull) {
+  runCache.set(run.id, run);
+}
+
 export function updateRunCache(runId: string, patch: Partial<RunFull>) {
   const r = runCache.get(runId);
   if (r) runCache.set(runId, { ...r, ...patch });

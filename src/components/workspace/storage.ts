@@ -16,5 +16,6 @@ export function initialStorage(): Liveblocks["Storage"] {
     decisions: new LiveMap(),
     outline: new LiveList(defaultOutline()),
     titles: new LiveMap(),
+    analysis: new LiveObject({ cond: null }),
   };
 }
