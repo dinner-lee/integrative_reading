@@ -101,7 +101,7 @@ export function TeacherHome({ teacher }: { teacher: { name: string; email: strin
           <Field label="학급(수업) 이름">
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="예: 2학년 3반 국어" required maxLength={60} />
           </Field>
-          <Field label="처음 만들 모둠 수" hint="나중에 더하거나 이름을 바꿀 수 있어요.">
+          <Field label="처음 만들 모둠 수">
             <Input type="number" min={0} max={20} value={groupCount} onChange={(e) => setGroupCount(Number(e.target.value))} />
           </Field>
           {error ? <Notice tone="bad">{error}</Notice> : null}

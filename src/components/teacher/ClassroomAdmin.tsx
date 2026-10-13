@@ -40,12 +40,12 @@ type Progress = {
 };
 
 const EXPORTS = [
-  { type: "events", label: "활동 로그", ext: "CSV", desc: "단계 이동, 판단, 댓글, 편집 등 모든 기록" },
-  { type: "materials", label: "수집 자료", ext: "CSV", desc: "자료 메타데이터와 본문, 변환 글자 수" },
-  { type: "runs", label: "분석 기록", ext: "JSON", desc: "분석 조건과 전체 결과" },
-  { type: "boards", label: "모둠 보드", ext: "JSON", desc: "계획, 묶음 이름·순서, 선정 근거, 개요" },
-  { type: "drafts", label: "초고", ext: "CSV", desc: "글마다 가장 최근 스냅숏" },
-  { type: "reflections", label: "성찰", ext: "CSV", desc: "학생별 성찰 답변" },
+  { type: "events", label: "활동 로그", ext: "CSV" },
+  { type: "materials", label: "수집 자료", ext: "CSV" },
+  { type: "runs", label: "분석 기록", ext: "JSON" },
+  { type: "boards", label: "모둠 보드", ext: "JSON" },
+  { type: "drafts", label: "초고", ext: "CSV" },
+  { type: "reflections", label: "성찰", ext: "CSV" },
 ];
 
 function ago(iso: string | null) {
@@ -162,7 +162,7 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
       {error ? <Notice tone="bad" className="mb-4">{error}</Notice> : null}
 
       <Sections>
-        <Section title="학생 초대" desc="학생은 이름만 쓰고 들어와요. 같은 이름을 쓰면 같은 학생으로 이어서 할 수 있어요.">
+        <Section title="학생 초대">
           <div className="flex flex-wrap items-center gap-4">
             <div className="rounded-xl bg-paper-2 px-4 py-3 text-center">
               <p className="text-[11px] text-ink-3">초대 코드</p>
@@ -198,7 +198,7 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
           </div>
         </Section>
 
-        <Section title="단계 열기" desc="연 단계만 학생이 들어갈 수 있어요. 바꾸면 20초 안에 학생 화면에 반영돼요.">
+        <Section title="단계 열기">
           <div className="flex flex-wrap gap-1.5">
             {STAGES.map((s, i) => {
               const on = c.openStages.includes(s.key);
@@ -270,7 +270,7 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
           </div>
         </Section>
 
-        <Section title="연구 자료 내보내기" desc="엑셀에서 바로 열 수 있는 CSV(UTF-8)와 원자료 JSON이에요.">
+        <Section title="연구 자료 내보내기">
           <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {EXPORTS.map((e) => (
               <li key={e.type}>
@@ -279,11 +279,8 @@ export function ClassroomAdmin({ classroomId }: { classroomId: string }) {
                   className="pressable flex h-full items-start gap-2 rounded-xl bg-surface-2 px-3 py-2.5 hover:bg-paper-2"
                 >
                   <Download size={15} className="mt-0.5 shrink-0 text-ink-3" />
-                  <span>
-                    <span className="block text-sm font-semibold">
-                      {e.label} <span className="text-xs font-normal text-ink-3">{e.ext}</span>
-                    </span>
-                    <span className="block text-xs text-ink-3">{e.desc}</span>
+                  <span className="text-sm font-semibold">
+                    {e.label} <span className="text-xs font-normal text-ink-3">{e.ext}</span>
                   </span>
                 </a>
               </li>
