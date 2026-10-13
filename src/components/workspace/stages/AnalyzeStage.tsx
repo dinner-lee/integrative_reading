@@ -2,14 +2,14 @@
 
 import { LiveList, LiveObject } from "@liveblocks/client";
 import { useMutation, useStorage, useUpdateMyPresence } from "@liveblocks/react/suspense";
-import { ArrowRight, Ban, Boxes, ChartColumn, ChartScatter, Gauge, GitCompare, Grid3x3, Play, Settings2, Table2, Tags, Type, type LucideIcon } from "lucide-react";
+import { ArrowRight, Ban, Boxes, ChartColumn, ChartScatter, Gauge, GitCompare, Grid3x3, Maximize2, Minimize2, Play, Settings2, Table2, Tags, Type, type LucideIcon } from "lucide-react";
 import { nanoid } from "nanoid";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/client/api";
 import { track } from "@/lib/client/logger";
 import { METHODS } from "@/lib/stages";
 import { useDialog } from "../../dialogs";
-import { Badge, Button, Empty, Notice, SectionTitle, Spinner, clsx } from "../../ui";
+import { Badge, Button, Collapse, Empty, Notice, SectionTitle, Spinner, clsx } from "../../ui";
 import { ClusterSettings, StopwordEditor } from "../analysis/Conditions";
 import { Clusters, KChart, MapView, Similarity, TermTable } from "../analysis/ResultView";
 import { useSharedConditions } from "../analysis/shared";
@@ -42,7 +42,7 @@ const TOOLS: Record<Tool, { label: string; icon: LucideIcon }> = {
 };
 
 const GROUPS: { step: number; label: string; tools: Tool[] }[] = [
-  { step: 1, label: "준비", tools: ["table", "prep", "stopwords"] },
+  { step: 1, label: "준비", tools: ["table", "stopwords", "prep"] },
   { step: 2, label: "묶기", tools: ["method"] },
   { step: 3, label: "결과", tools: ["summary", "clusters", "map", "terms", "similarity"] },
   { step: 4, label: "비교", tools: ["history"] },
@@ -275,6 +275,26 @@ function AnalyzeWorkbench({
   children: React.ReactNode;
 }) {
   const L = useLayout<Tool, Preset>({ storageKey, initialPreset, presetFor, homeOf });
+  // 작업대 크게: 위 안내 띠를 접고 작업대를 화면 높이에 맞춘다
+  const fullKey = `${storageKey}.full`;
+  const [full, setFull] = useState(() => {
+    try {
+      return typeof window !== "undefined" && window.localStorage.getItem(fullKey) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const toggleFull = () => {
+    const next = !full;
+    L.fitNextResize();
+    setFull(next);
+    try {
+      window.localStorage.setItem(fullKey, next ? "1" : "0");
+    } catch {
+      /* 저장이 막혀도 이번 화면에서는 바뀐다 */
+    }
+    track("analysis.workbench_full", { on: next }, { stage: "analyze" });
+  };
   const narrow = L.size.w > 0 && L.size.w < NARROW;
   const top = L.layout?.order[L.layout.order.length - 1] ?? null;
   const openSet = new Set(L.layout?.order ?? []);
@@ -405,14 +425,16 @@ function AnalyzeWorkbench({
 
   return (
     <div className="mx-auto max-w-[1400px]">
-      <SectionTitle title="자료 분석하기" desc="자료를 낱말로 바꾸고, 묶고, 결과를 읽고 비교한 뒤, 묶음에 이름을 붙이고 자료를 골라요." />
+      <Collapse open={!full}>
+        <SectionTitle title="자료 분석하기" desc="자료를 낱말로 바꾸고, 묶고, 결과를 읽고 비교한 뒤, 묶음에 이름을 붙이고 자료를 골라요." />
+      </Collapse>
       {error ? (
         <Notice tone="bad" className="mb-3">
           {error}
         </Notice>
       ) : null}
 
-      <div className="card flex h-[calc(100dvh-236px)] min-h-[560px] flex-col overflow-clip">
+      <div className={clsx("card flex min-h-[560px] flex-col overflow-clip transition-[height] duration-300 ease-out motion-reduce:transition-none", full ? "h-[calc(100dvh-112px)]" : "h-[calc(100dvh-236px)]")}>
         {/* 메뉴 막대 */}
         <div className="flex shrink-0 flex-wrap items-center gap-1 border-b border-line px-2 py-1.5">
           <MenuButton
@@ -485,6 +507,18 @@ function AnalyzeWorkbench({
                 이 결과로 이름 붙이기 <ArrowRight size={13} />
               </Button>
             ) : null}
+            <span className="mx-0.5 h-5 w-px bg-line" aria-hidden />
+            <button
+              type="button"
+              onClick={toggleFull}
+              aria-pressed={full}
+              aria-label={full ? "작업대 원래 크기로" : "작업대 크게"}
+              title={full ? "안내 띠를 다시 펴고 원래 크기로" : "안내 띠를 접고 작업대를 화면에 맞추기"}
+              className="pressable flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] font-medium text-ink-2 hover:bg-paper-2 hover:text-ink"
+            >
+              {full ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+              <span className="hidden lg:inline">{full ? "원래대로" : "작업대 크게"}</span>
+            </button>
           </span>
         </div>
 

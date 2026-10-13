@@ -53,6 +53,8 @@ export function useLayout<K extends string, P extends string>({
   const init = useRef({ initialPreset, presetFor });
   const sizeRef = useRef(size);
   const homeRef = useRef(homeOf);
+  // 작업대 크기를 일부러 바꿀 때(크게/원래대로) 잠시 동안 창 배치를 새 크기에 비례해 맞춘다
+  const fitUntil = useRef(0);
   useEffect(() => {
     init.current = { initialPreset, presetFor };
     homeRef.current = homeOf;
@@ -66,6 +68,20 @@ export function useLayout<K extends string, P extends string>({
     const measure = () => {
       const w = el.clientWidth;
       const h = el.clientHeight;
+      const prev = sizeRef.current;
+      if (performance.now() < fitUntil.current && prev.w > 0 && prev.h > 0 && (prev.w !== w || prev.h !== h)) {
+        const sx = w / prev.w;
+        const sy = h / prev.h;
+        setLayout((l) => {
+          if (!l) return l;
+          const wins: typeof l.wins = {};
+          (Object.keys(l.wins) as K[]).forEach((k) => {
+            const v = l.wins[k]!;
+            wins[k] = { ...v, x: v.x * sx, y: v.y * sy, w: v.w * sx, h: v.h * sy };
+          });
+          return { ...l, wins };
+        });
+      }
       sizeRef.current = { w, h };
       setSize((s) => (s.w === w && s.h === h ? s : { w, h }));
       if (w > 0 && h > 0) setLayout((l) => l ?? init.current.presetFor(init.current.initialPreset, w, h));
@@ -79,7 +95,7 @@ export function useLayout<K extends string, P extends string>({
   useEffect(() => {
     if (!layout) return;
     try {
-      window.localStorage.setItem(storageKey, JSON.stringify(layout));
+      window.localStorage.setItem(storageKey, JSON.stringify(layout, (k, v) => (typeof v === "number" && ["x", "y", "w", "h"].includes(k) ? Math.round(v) : v)));
     } catch {
       /* 개인 브라우저 저장이 막혀 있어도 작업은 계속된다 */
     }
@@ -120,6 +136,10 @@ export function useLayout<K extends string, P extends string>({
     toggleMax: (t: K) => update((l) => ({ ...l, max: l.max ? null : t, order: front(l.order, t) })),
     preset: (name: P) => setLayout(() => init.current.presetFor(name, sizeRef.current.w || 1200, sizeRef.current.h || 700)),
     closeAll: () => update(() => ({ wins: {}, order: [], max: null })),
+    /** 곧 작업대 크기가 바뀌니 창 배치를 따라 맞추라고 알린다 (전환 애니메이션 동안) */
+    fitNextResize: (ms = 700) => {
+      fitUntil.current = performance.now() + ms;
+    },
   };
 
   return { layout, size, canvasRef, ...api };
