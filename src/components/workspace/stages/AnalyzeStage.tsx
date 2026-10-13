@@ -424,7 +424,13 @@ function AnalyzeWorkbench({
   const layout = L.layout;
 
   return (
-    <div className="mx-auto max-w-[1400px]">
+    // 작업대 크게: 페이지 최대 폭을 벗어나 화면 가로폭(양옆 1rem)까지 넓힌다 (부모 가운데 정렬 기준으로 왼쪽을 화면 끝에 맞춤)
+    <div
+      className={clsx(
+        "transition-[width,margin] duration-300 ease-out motion-reduce:transition-none",
+        full ? "ml-[calc(50%-50vw+1rem)] w-[calc(100vw-2rem)] max-w-none" : "mx-auto w-full max-w-[1400px]",
+      )}
+    >
       <Collapse open={!full}>
         <SectionTitle title="자료 분석하기" desc="자료를 낱말로 바꾸고, 묶고, 결과를 읽고 비교한 뒤, 묶음에 이름을 붙이고 자료를 골라요." />
       </Collapse>
