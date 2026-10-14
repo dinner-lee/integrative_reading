@@ -94,6 +94,13 @@ npm run dev                     # http://localhost:3000
 2. 분석 서버를 Docker로 배포 → 공개 주소를 `ANALYSIS_URL`, 같은 `ANALYSIS_SECRET`을 양쪽에. Railway라면 GitHub 저장소를 연결하고 서비스 설정에서 **Root Directory를 `analysis`**로 지정하면 `analysis/railway.json`(Dockerfile 빌드, `/health` 헬스체크)이 자동으로 적용됩니다.
 3. Vercel 환경 변수: `.env.example` 항목 모두(`SESSION_SECRET`은 새로 생성, Liveblocks는 운영용 `sk_prod_…` 권장).
 4. 첫 배포 뒤 `npx prisma db push`(DIRECT_URL 사용).
+5. Vercel 함수 지역은 `vercel.json`에서 **싱가포르(`sin1`)**로 고정해 두었습니다. Neon DB(ap-southeast-1)와 같은 지역이어야 DB 질의마다 태평양을 건너지 않습니다. Railway 분석 서버도 Singapore 지역을 권합니다.
+
+### 단계 이동이 빠른 이유 (화면 데이터 보관)
+- `src/components/workspace/hooks.ts`의 공유 보관소가 자료 목록·분석 기록·분석 기본값을 한곳에 두고, 단계를 다시 열면 바로 보여 준 뒤 뒤에서 조용히 새로 받습니다. 여러 부품이 같은 주소를 동시에 부르면 요청 하나로 합칩니다. 다른 모둠원이 바꾸면 방 이벤트(`materials-changed`, `runs-changed`)로 다시 받습니다.
+- 작업 공간에 들어오면(`StageShell`) 자료 목록·분석 기록·분석 기본값·가장 최근 분석 결과를 미리 받아 둡니다.
+- 서버: 학생이 자기 모둠을 볼 때 권한 확인을 학생 조회 한 번으로 끝내고(`authorizeGroup`), 분석 기록 목록은 결과 전체 대신 `AnalysisRun.summary` 열만 읽습니다(예전 기록은 처음 볼 때 한 번 채움). 분석 기본값은 서버 메모리에 10분 둡니다.
+- Neon 무료 요금제는 5분 쉬면 DB가 잠들어, 쉬었다가 처음 여는 요청은 1초쯤 더 걸릴 수 있습니다(Neon 설정에서 자동 일시 중지를 끄면 없어짐).
 5. 운영 중 교사 가입을 막으려면 `TEACHER_SIGNUP_CODE` 설정.
 
 ## 알려진 한계

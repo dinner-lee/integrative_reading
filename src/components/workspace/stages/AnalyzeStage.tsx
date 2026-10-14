@@ -4,7 +4,7 @@ import { LiveList, LiveObject } from "@liveblocks/client";
 import { useMutation, useStorage, useUpdateMyPresence } from "@liveblocks/react/suspense";
 import { ArrowRight, Ban, Boxes, ChartColumn, ChartScatter, Gauge, GitCompare, Grid3x3, Maximize2, Minimize2, Play, Settings2, Table2, Tags, Type, type LucideIcon } from "lucide-react";
 import { nanoid } from "nanoid";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/client/api";
 import { track } from "@/lib/client/logger";
 import { METHODS } from "@/lib/stages";
@@ -16,7 +16,7 @@ import { useSharedConditions } from "../analysis/shared";
 import { HistoryWindow, MaterialTable, NoRun, PreprocessWindow, SummaryWindow, describeParams } from "../analysis/windows";
 import { Canvas, LAYOUT_GAP as G, MenuButton, NARROW, ToolPalette, WindowFrame, extentOf, useLayout, type Layout, type Win } from "../analysis/Workspace";
 import { useRoomCtx } from "../context";
-import { primeRunCache, useMaterials, useRun, useRuns } from "../hooks";
+import { primeRunCache, useAnalysisDefaults, useMaterials, useRun, useRuns } from "../hooks";
 import { MaterialDetail } from "../MaterialDetail";
 import { ClusterBoard } from "./GenerateStage";
 import type { Material, RunFull } from "../types";
@@ -110,7 +110,10 @@ export function AnalyzeStage() {
   const namedCount = useStorage((root) => root.clusters?.filter((c) => c.name.trim()).length ?? 0);
   const updatePresence = useUpdateMyPresence();
 
-  const [defaults, setDefaults] = useState<{ stopwords: string[]; methods: string[] } | null>(null);
+  const { defaults: fetched, error: defaultsError } = useAnalysisDefaults(canEdit);
+  // 둘러보기(교사·다른 모둠)는 서버 기본값 없이 학급에서 켠 방법만
+  const enabled = me?.classroom.enabledMethods;
+  const defaults = useMemo(() => (canEdit ? fetched : { stopwords: [], methods: enabled ?? ["tfidf_kmeans", "lda"] }), [canEdit, fetched, enabled]);
   const [cond, setCond] = useSharedConditions(materials, defaults);
   const [selectedRun, setSelectedRun] = useState<string | null>(null);
   const [compareWith, setCompareWith] = useState<string | null>(null);
@@ -121,16 +124,6 @@ export function AnalyzeStage() {
   const [picked, setPicked] = useState<string | null>(null);
   const { confirm } = useDialog();
 
-  useEffect(() => {
-    if (!canEdit) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- 둘러보기는 기본값을 서버에서 받지 않음
-      setDefaults({ stopwords: [], methods: me?.classroom.enabledMethods ?? ["tfidf_kmeans", "lda"] });
-      return;
-    }
-    api<{ stopwords: string[]; methods: string[] }>("/api/analysis/defaults")
-      .then(setDefaults)
-      .catch((e) => setError((e as Error).message));
-  }, [canEdit, me?.classroom.enabledMethods]);
 
   const activeId = selectedRun ?? runs?.[0]?.id ?? null;
   const { run } = useRun(activeId);
@@ -179,7 +172,7 @@ export function AnalyzeStage() {
       activeId={activeId}
       compareWith={compareWith}
       running={running}
-      error={error}
+      error={error ?? defaultsError}
       canEdit={canEdit}
       canAdopt={canEdit && viewer.role === "student"}
       adoptedId={board?.runId ?? null}

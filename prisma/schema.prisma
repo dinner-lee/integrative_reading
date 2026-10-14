@@ -115,6 +115,8 @@ model AnalysisRun {
   params      Json
   materialIds String[]
   result      Json
+  /// 목록에 쓰는 짧은 요약(묶음 수·대표 낱말·지표). 결과 전체를 읽지 않으려고 따로 둔다
+  summary     Json?
   /// 학생이 남기는 해석 메모 ("조건을 바꾸니 무엇이 달라졌나")
   note        String?
   createdAt   DateTime @default(now())

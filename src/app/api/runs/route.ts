@@ -52,13 +52,21 @@ export const GET = handle(async (req: Request) => {
       materialIds: true,
       note: true,
       createdAt: true,
-      result: true,
+      summary: true,
       createdBy: { select: { id: true, name: true } },
     },
   });
-  return NextResponse.json({
-    runs: runs.map(({ result, ...r }) => ({ ...r, summary: summarize(result as unknown as RunResult) })),
-  });
+  // 요약 열이 생기기 전에 만든 기록은 결과를 한 번 읽어 요약을 채워 둔다
+  const missing = runs.filter((r) => !r.summary).map((r) => r.id);
+  if (missing.length) {
+    const full = await db.analysisRun.findMany({ where: { id: { in: missing } }, select: { id: true, result: true } });
+    const filled = new Map(full.map((f) => [f.id, summarize(f.result as unknown as RunResult)]));
+    await Promise.all([...filled].map(([id, summary]) => db.analysisRun.update({ where: { id }, data: { summary } })));
+    runs.forEach((r) => {
+      if (!r.summary) r.summary = filled.get(r.id) ?? null;
+    });
+  }
+  return NextResponse.json({ runs });
 });
 
 export const POST = handle(async (req: Request) => {
@@ -94,6 +102,7 @@ export const POST = handle(async (req: Request) => {
       params: { preprocess: body.preprocess, mining: body.mining },
       materialIds: materials.map((m) => m.id),
       result: result as object,
+      summary: summarize(result),
     },
     include: { createdBy: { select: { id: true, name: true } } },
   });

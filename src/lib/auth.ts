@@ -77,13 +77,18 @@ export async function requireOwnClassroom(classroomId: string) {
  * 쓰기 권한(write)은 본인 모둠과 교사만.
  */
 export async function authorizeGroup(groupId: string, mode: "read" | "write") {
+  const s = await readSession();
+  // 학생이 자기 모둠을 볼 때(가장 흔한 경우)는 학생 조회(모둠·학급 포함) 한 번으로 끝낸다
+  const st = s?.role === "student" ? await getStudentContext() : null;
+  if (st && st.groupId === groupId && st.group) {
+    const group = { ...st.group, classroom: st.classroom };
+    return { group, actor: { type: "student" as const, id: st.id, name: st.name }, student: st, own: true };
+  }
   const group = await db.group.findUnique({ where: { id: groupId }, include: { classroom: true } });
   if (!group) throw new ApiError(404, "모둠을 찾을 수 없어요.");
-  const s = await readSession();
   if (s?.role === "teacher" && group.classroom.teacherId === s.teacherId) {
     return { group, actor: { type: "teacher" as const, id: s.teacherId } };
   }
-  const st = await getStudentContext();
   if (!st || st.classroomId !== group.classroomId) throw new ApiError(403, "볼 수 없는 모둠이에요.");
   const own = st.groupId === groupId;
   if (!own && (mode === "write" || !group.classroom.allowPeerView)) {

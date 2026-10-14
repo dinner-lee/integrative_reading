@@ -12,6 +12,7 @@ import { springs } from "../motion";
 import { SettingsMenu } from "../SettingsMenu";
 import { Badge, clsx } from "../ui";
 import { useRoomCtx } from "./context";
+import { prefetchGroup } from "./hooks";
 import { AnalyzeStage } from "./stages/AnalyzeStage";
 import { CollectStage } from "./stages/CollectStage";
 import { OrganizeStage } from "./stages/OrganizeStage";
@@ -44,7 +45,11 @@ export function StageShell({
   settings: ReactNode;
   hideStages?: StageKey[];
 }) {
-  const { groupId, isOwnGroup } = useRoomCtx();
+  const { groupId, isOwnGroup, canEdit } = useRoomCtx();
+  // 단계마다 쓰는 데이터를 들어오자마자 받아 두어, 단계를 옮길 때 기다리지 않게 한다
+  useEffect(() => {
+    if (groupId) prefetchGroup(groupId, canEdit);
+  }, [groupId, canEdit]);
   const stages = STAGES.filter((s) => !hideStages.includes(s.key));
   const firstOpen = stages.find((s) => openStages.includes(s.key))?.key ?? "plan";
   const [chosen, setStage] = useState<StageKey>(() => {
